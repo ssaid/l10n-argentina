@@ -7,7 +7,7 @@
             <field name="description">Web Service de Factura Electrónica</field>
         </record>
 
-        <record id="afipws_service_wsfex" model="afipws.service" forcecreate="0">
+        <record id="afipws_service_wsfex" model="afipws.service" forcecreate="1">
             <field name="name">wsfex</field>
             <field name="code">Web Service de Factura Electrónica de Exportación</field>
         </record>
