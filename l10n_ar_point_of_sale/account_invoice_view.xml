@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+        <record id="view_account_invoice_form_inherit_l10n_ar_pos" model="ir.ui.view">
+            <field name="name">account.invoice.form.inherit.l10n.ar.pos</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_form"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="supplier_invoice_number" position="replace"/>
+                    <xpath expr="//field[@name='partner_id']" position="attributes">
+                        <attribute name="default_focus">1</attribute>
+                    </xpath>
+                </data>
+            </field>
+        </record>
         <!--vista Heredada de account_invoice-->
         <record id="view_pos_invoice_form" model="ir.ui.view">
             <field name="name">account.invoice.form.inherit2</field>
@@ -8,6 +21,9 @@
             <field name="type">form</field>
             <field name="inherit_id" ref="account.invoice_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="attributes">
+                    <attribute name="default_focus">1</attribute>
+                </xpath>
                 <xpath expr="//button[@string='Refund Invoice']" position="replace" >
                     <button type='action' string='Refund Invoice' groups="base.group_user"
                         name="%(account.action_account_invoice_refund)d"
