@@ -23,7 +23,7 @@
 
 {
     "name": "Payments for ARGENTINA",
-    "version": "1.0",
+    "version": "1.1",
     "depends": ["base", "account_voucher", "account_accountant"],
     "author": "E-MIPS,Odoo Community Association (OCA)",
     "website": "http://e-mips.com.ar",

@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 def migrate(cr, version):
     if not version:
         return
-    import ipdb; ipdb.set_trace()
     try:
         cr.execute("""
             ALTER TABLE perception_tax_line RENAME COLUMN tax_amount TO tax_currency
