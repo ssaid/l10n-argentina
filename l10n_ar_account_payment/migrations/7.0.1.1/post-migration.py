@@ -14,18 +14,23 @@ def _do_update(cr):
         else:  # Generate the journal for payment
             # Generate sequence
             q = """
+                select max(lala::numeric) + 1 as tv from (select regexp_replace(right(reference, 8), '\D', '', 'g') lala from account_voucher where type ~ 'payment' and reference is not null) a where lala != '';
+            """
+            cr.execute(q)
+            next_number, = cr.fetchone()
+            q = """
                 INSERT INTO ir_sequence
-                (implementation, name, number_increment, number_next, padding, prefix)
+                (implementation, name, number_increment, number_next, padding, prefix, active)
                 VALUES
-                (%(implementation)s, %(name)s, %(number_increment)s, %(number_next)s, %(padding)s, %(prefix)s)
+                (%(implementation)s, %(name)s, %(number_increment)s, %(number_next)s, %(padding)s, %(prefix)s, True)
                 RETURNING id
             """
             q_params = {
                 'implementation': 'no_gap',
                 'name': 'OP0001',
                 'number_increment': 1,
-                'number_next': 1,
-                'padding': 4,
+                'number_next': next_number,
+                'padding': 8,
                 'prefix': 'OP0001-'
             }
             cr.execute(q, q_params)
@@ -46,28 +51,32 @@ def _do_update(cr):
             }
             cr.execute(q, q_params)
             payment_journal_id = cr.fetchone()[0]
-        q = "UPDATE account_voucher SET journal_id=%(j_id)s WHERE type ~ 'payment' AND journal_id IS NULL;"
+        q = "UPDATE account_voucher SET journal_id=%(j_id)s WHERE type ~ 'payment'"
         q_params = {'j_id': payment_journal_id}
         cr.execute(q, q_params)
-
         cr.execute("SELECT id FROM account_journal WHERE type ~ 'receipt'")
         if cr.rowcount:
             receipt_journal_id = cr.fetchone()[0]
         else:
             # Generate sequence
             q = """
+                select max(lala::numeric) + 1 as tv from (select regexp_replace(right(reference, 8), '\D', '', 'g') lala from account_voucher where type ~ 'receipt' and reference is not null) a where lala != '';
+            """
+            cr.execute(q)
+            next_number, = cr.fetchone()
+            q = """
                 INSERT INTO ir_sequence
-                (implementation, name, number_increment, number_next, padding, prefix)
+                (implementation, name, number_increment, number_next, padding, prefix, active)
                 VALUES
-                (%(implementation)s, %(name)s, %(number_increment)s, %(number_next)s, %(padding)s, %(prefix)s)
+                (%(implementation)s, %(name)s, %(number_increment)s, %(number_next)s, %(padding)s, %(prefix)s, True)
                 RETURNING id
             """
             q_params = {
                 'implementation': 'no_gap',
                 'name': 'R0001',
                 'number_increment': 1,
-                'number_next': 1,
-                'padding': 4,
+                'number_next': next_number,
+                'padding': 8,
                 'prefix': 'R0001-'
             }
             cr.execute(q, q_params)
@@ -88,7 +97,7 @@ def _do_update(cr):
             }
             cr.execute(q, q_params)
             receipt_journal_id = cr.fetchone()[0]
-        q = "UPDATE account_voucher SET journal_id=%(j_id)s WHERE type ~ 'receipt' AND journal_id IS NULL;"
+        q = "UPDATE account_voucher SET journal_id=%(j_id)s WHERE type ~ 'receipt';"
         q_params = {'j_id': receipt_journal_id}
         cr.execute(q, q_params)
     except psycopg2.ProgrammingError:
@@ -97,5 +106,24 @@ def _do_update(cr):
         cr.commit()
 
 
+def fix_number_reference(cr):
+    """
+    1. Backup number to old_number
+    2. Copy reference to number
+    3. Move old_number to reference
+    """
+    try:
+        cr.execute('ALTER TABLE account_voucher ADD column old_number varchar')
+        cr.execute('UPDATE account_voucher SET old_number=number')
+        cr.execute('UPDATE account_voucher SET number=reference')
+        cr.execute('ALTER TABLE account_voucher DROP COLUMN reference')
+        cr.execute('ALTER TABLE account_voucher RENAME COLUMN old_number TO reference')
+    except psycopg2.ProgrammingError:
+        cr.rollback()
+    else:
+        cr.commit()
+
+
 def migrate(cr, installed_version):
-    return _do_update(cr)
+    _do_update(cr)
+    fix_number_reference(cr)

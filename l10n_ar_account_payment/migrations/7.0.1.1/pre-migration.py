@@ -12,6 +12,15 @@ def _do_update(cr):
     """
     try:
         cr.execute("""
+        update ir_ui_view set arch=replace(arch, $$<field name="journal_sequence" required="1" domain="[('code','=','voucher.receipt')]"/>$$, '') where arch ~* 'journal_sequence';
+        """)
+        cr.execute("""
+        update ir_ui_view set arch=replace(arch, $$<field name="journal_sequence" required="1" domain="[('code','=','voucher.payment')]"/>$$, '') where arch ~* 'journal_sequence';
+        """)
+    except Exception as e:
+        logger.warning(e)
+    try:
+        cr.execute("""
             SELECT
                 tc.constraint_name, tc.table_name, kcu.column_name,
                 ccu.table_name AS foreign_table_name,
@@ -45,9 +54,9 @@ def _do_update(cr):
             # Generate sequence
             q = """
                 INSERT INTO ir_sequence
-                (implementation, name, number_increment, number_next, padding)
+                (implementation, name, number_increment, number_next, padding, active)
                 VALUES
-                (%(implementation)s, %(name)s, %(number_increment)s, %(number_next)s, %(padding)s)
+                (%(implementation)s, %(name)s, %(number_increment)s, %(number_next)s, %(padding)s, True)
                 RETURNING id
             """
             q_params = {
