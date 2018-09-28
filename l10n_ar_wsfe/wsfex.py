@@ -562,8 +562,8 @@ class wsfex_config(osv.osv):
                 # o algo asi para que no haya posibilidad de que sea diferente nunca en su formato
                 invoice_vals['internal_number'] = '%04d-%08d' % (result['PtoVta'], comp['CbteHasta'])
 
-            if not all([doc_num, cbte]):
-                raise osv.except_osv(_("WSFE Error!"), _("Validated invoice that not corresponds!"))
+#            if not all([doc_num, cbte]):
+#                raise osv.except_osv(_("WSFE Error!"), _("Validated invoice that not corresponds!"))
 
             invoice_vals['cae'] = comp['Cae']
             invoice_vals['cae_due_date'] = comp['Fch_venc_Cae']
@@ -796,6 +796,13 @@ class wsfex_config(osv.osv):
 
             Cmps_asoc.append(Cmp_asoc)
 
+        # TODO: Agregar permisos
+        tipo_cbte = voucher_type_obj.get_voucher_type(cr, uid, inv, context=context)
+        if tipo_cbte in ('20', '21'):
+            shipping_perm = ''
+        else:
+            shipping_perm = 'S' and inv.shipping_perm_ids or 'N'
+
         Cmp = {
             'invoice_id' : inv.id,
             'Id' : Id,
@@ -804,11 +811,11 @@ class wsfex_config(osv.osv):
             #'Punto_vta' : pto_venta,
             'Cbte_nro' : cbte_nro,
             'Tipo_expo' : inv.export_type_id.code, #Exportacion de bienes
-            'Permiso_existente' : '', # TODO: manejo de permisos de embarque
+            'Permiso_existente' : shipping_perm,
             'Dst_cmp' : inv.dst_country_id.code,
             'Cliente' : inv.partner_id.name,
             'Domicilio_cliente' : inv.partner_id.contact_address,
-            'Cuit_pais_cliente' : cuit_pais,
+            'Cuit_pais_cliente' : int(cuit_pais),
             'Id_impositivo' : inv.partner_id.vat,
             'Moneda_Id' : curr_code,
             'Moneda_ctz' : 1.000000, # TODO: Obtener cotizacion usando el metodo de AFIP
