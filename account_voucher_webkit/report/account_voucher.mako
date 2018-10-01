@@ -55,10 +55,10 @@
         	<tr>
         		<td colspan="2" width="50%" align="center">
                     %if o.type == 'payment':
-						<h1><b>${ ('-' in o.number and (o.number.split('-')[1])) or (len(o.number) >= 8 and o.number[-8:]) or '' }</b></h1>
+						<h1><b>${ ('-' in o.number and (o.number.split('-')[1])) or o.number or '' }</b></h1>
 					%endif
 					%if o.type == 'receipt':
-						<h1><b>RECIBO OFICIAL NRO.  ${ ('-' in o.number and (o.number.split('-')[1])) or (len(o.number) >= 8 and o.number[-8:]) or ''}</b></h1>
+						<h1><b>RECIBO OFICIAL NRO.  ${ ('-' in o.number and (o.number.split('-')[1])) or o.number or ''}</b></h1>
 					%endif
           		</td>
             </tr>
