@@ -303,6 +303,7 @@ class account_voucher(osv.osv):
                 'move_id': move_id,
                 'state': 'posted',
                 'number': name,
+                'reference': name,
             })
             if voucher.journal_id.entry_posted:
                 move_pool.post(cr, uid, [move_id], context={})

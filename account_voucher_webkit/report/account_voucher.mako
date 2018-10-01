@@ -43,7 +43,7 @@
                     COMPROBANTE NO VALIDO COMO FACTURA</br>
                     ESTE 
                     %if o.type == 'payment':
-						EGRESO DE CAJA  
+						ORDEN DE PAGO
 					%endif
 					%if o.type == 'receipt':
 						RECIBO 
@@ -55,10 +55,10 @@
         	<tr>
         		<td colspan="2" width="50%" align="center">
                     %if o.type == 'payment':
-						<h1><b>EGRESO DE CAJA  ${ (o.number) or ''}</b></h1>
+						<h1><b>${ ('-' in o.number and (o.number.split('-')[1])) or (len(o.number) >= 8 and o.number[-8:]) or '' }</b></h1>
 					%endif
 					%if o.type == 'receipt':
-						<h1><b>RECIBO OFICIAL NRO.  ${ (o.reference) or ''}</b></h1>
+						<h1><b>RECIBO OFICIAL NRO.  ${ ('-' in o.number and (o.number.split('-')[1])) or (len(o.number) >= 8 and o.number[-8:]) or ''}</b></h1>
 					%endif
           		</td>
             </tr>
@@ -91,11 +91,11 @@
         		<td colspan="2">
                     %if o.type == 'receipt':
                     Recibimos de ${ o.partner_id.name or ''|entity} la cantidad de 
-                    ${ amount_to_text_sp(o.amount, 'peso')} (${o.amount}) cuyo importe una vez hecho efectivo sera acreditado en su cuenta segun
+                    ${ amount_to_text_sp(o.amount, o.amount)} (${o.amount}) cuyo importe una vez hecho efectivo sera acreditado en su cuenta segun
                     detalle / al pie de este recibo.
                     %endif
                     %if o.type == 'payment':
-						La cantidad de ${ amount_to_text_sp(o.amount, 'peso')} (${o.amount})
+						La cantidad de ${ amount_to_text_sp(o.amount, o.amount)} (${o.amount})
 					%endif
           		</td>
              </tr>
@@ -153,7 +153,7 @@
 							${ line.amount_original or '' | entity}
 						</td>
 						<td width="12%" align="right" style="border-bottom:1px solid lightGrey;">$ 
-							${ saldo(line.amount_original, line.amount)}
+							${ saldo(line.amount_unreconciled, line.amount)}
 						</td>
 						<td width="16%" align="right" style="border-bottom:1px solid lightGrey;">$ 
 							${ line.amount or '' | entity}
@@ -198,7 +198,7 @@
 							${ line.amount_original or '' | entity}
 						</td>
 						<td width="12%" align="right" style="border-bottom:1px solid lightGrey;">$ 
-							${ saldo(line.amount_original, line.amount)}
+							${ saldo(line.amount_unreconciled, line.amount)}
 						</td>
 						<td width="16%" align="right" style="border-bottom:1px solid lightGrey;">$ 
 							${ line.amount or '' | entity}
@@ -278,7 +278,7 @@
 							${ line_cr.amount_original or '' | entity}
 						</td>
 						<td width="12%" align="right" style="border-bottom:1px solid lightGrey;">$ 
-							${ saldo(line.amount_original, line.amount)}
+							${ saldo(line.amount_unreconciled, line.amount)}
 						</td>
 						<td width="16%" align="right" style="border-bottom:1px solid lightGrey;">$ 
 							${ line_cr.amount or '' | entity}
@@ -323,7 +323,7 @@
 							${ line.amount_original or '' | entity}
 						</td>
 						<td width="12%" align="right" style="border-bottom:1px solid lightGrey;">$ 
-							${ saldo(line.amount_original, line.amount)}
+							${ saldo(line.amount_unreconciled, line.amount)}
 						</td>
 						<td width="16%" align="right" style="border-bottom:1px solid lightGrey;">$ 
 							${ line.amount or '' | entity}
@@ -438,6 +438,7 @@
              </tr>
 		</table>
 		%endif
+
 		%if o.type == 'receipt':
 			%if o.third_check_receipt_ids:
 			<h1><b>Detalle de cheques de terceros</b></h1><!--para recibo-->
@@ -490,6 +491,18 @@
 			</table>
 			%endif
 		%endif
+
+        <!-- Esto es una locura, imprimimos esto como hidden porque sino el 
+        valor de writeoff_amount se dispara a cualquier cosa -->
+		<table class="shipping_address" width="0%" style="display:none;">
+        	<tr>
+        		<td colspan="6" align="right">
+                    <b>${_("Total")} $ ${o.writeoff_amount}</b>
+          		</td>
+             </tr>
+		</table>
+
+
 		%if o.type == 'payment':
 			%if o.third_check_ids:
 			<h1><b>Detalle de cheques de terceros</b></h1>
@@ -593,7 +606,15 @@
 			</table>
 		%endif
 	%endfor
-
+    %if o.type == 'receipt' and o.name:
+    <table width="100%">
+        <tr>
+            <td colspan="6" align="left">
+                <h3>${_("ESTE RECIBO OFICIAL REEMPLAZA EL RECIBO PROVISORIO NUMERO")} ${o.name}</h3>
+            </td>
+        </tr>
+    </table>
+    %endif
     <table width="100%">
        <tr>
         %if o.writeoff_amount>0.0:

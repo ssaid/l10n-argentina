@@ -22,57 +22,204 @@ import time
 
 from openerp.report import report_sxw
 import amount_to_text_sp
-#~ import math
-#~ 
-#~ unites = {
-    #~ 0: ' ', 1:'un', 2:'dos', 3:'tres', 4:'cuatro', 5:'cinco', 6:'seis', 7:'siete', 8:'ocho', 9:'nueve', 10:'diez',
-    #~ 11:'once', 12:'doce', 13:'trece', 14:'catorce', 15:'quince', 16:'dieciseis', 17:'diecisiete', 18:'dieciocho', 19:'diecinueve', 20:'veinte',
-    #~ 21:'veintiuno', 22:'veintidos', 23:'veintitres', 24:'veinticuatro', 25:'veinticinco', 26:'veintiseis', 27:'veintisiete', 28:'veintiocho', 29:'veintinueve'}
-#~ 
-#~ dizaine = {
-    #~ 1: 'diez', 2:'veinte', 3:'treinta',4:'cuarenta', 5:'cincuenta', 6:'sesenta', 7:'setenta', 8:'ochenta', 9:'noventa'
-#~ }
-#~ 
-#~ centaine = {
-    #~ 0:'', 1: 'ciento', 2:'doscientos', 3:'trescientos',4:'cuatrocientos', 5:'quinientos', 6:'seiscientos', 7:'setecientos', 8:'ochocientos', 9:'novecientos'
-#~ }
-#~ 
-#~ mille = {
-    #~ 0:' ', 1:'mil'
-#~ }
-#~ 
-#~ 
-#~ def _100_to_text_sp(chiffre):
-	#~ if chiffre in unites:
-		#~ return unites[chiffre]
-	#~ else:
-		#~ if chiffre%10>0:
-			#~ return dizaine[chiffre / 10]+' y '+unites[chiffre % 10]
-		#~ else:
-			#~ return dizaine[chiffre / 10]
-#~ 
-#~ def _1000_to_text_sp(chiffre):
-	#~ d = _100_to_text_sp(chiffre % 100)
-	#~ d2 = chiffre/100
-	#~ if d2>0 and d:
-		#~ return centaine[d2]+' '+d
-	#~ elif d2>0 and not(d):
-			#~ return 'cien'
-	#~ elif d2>1 and not(d):
-		#~ return centaine[d2]+'s'
-	#~ else:
-			#~ return centaine[d2] or d
-#~ 
-#~ def _10000_to_text_sp(chiffre):
-	#~ if chiffre==0:
-		#~ return 'cero'
-	#~ part1 = _1000_to_text_sp(chiffre % 1000)
-	#~ part2 = mille.get(chiffre / 1000,  _1000_to_text_sp(chiffre / 1000)+' mil')
-	#~ if part2 and part1:
-		#~ part1 = ' '+part1
-	#~ return part2+part1
-	
+
+UNIDADES = (
+    '',
+    'UN ',
+    'DOS ',
+    'TRES ',
+    'CUATRO ',
+    'CINCO ',
+    'SEIS ',
+    'SIETE ',
+    'OCHO ',
+    'NUEVE ',
+    'DIEZ ',
+    'ONCE ',
+    'DOCE ',
+    'TRECE ',
+    'CATORCE ',
+    'QUINCE ',
+    'DIECISEIS ',
+    'DIECISIETE ',
+    'DIECIOCHO ',
+    'DIECINUEVE ',
+    'VEINTE '
+)
+
+DECENAS = (
+    'VENTI',
+    'TREINTA ',
+    'CUARENTA ',
+    'CINCUENTA ',
+    'SESENTA ',
+    'SETENTA ',
+    'OCHENTA ',
+    'NOVENTA ',
+    'CIEN '
+)
+
+CENTENAS = (
+    'CIENTO ',
+    'DOSCIENTOS ',
+    'TRESCIENTOS ',
+    'CUATROCIENTOS ',
+    'QUINIENTOS ',
+    'SEISCIENTOS ',
+    'SETECIENTOS ',
+    'OCHOCIENTOS ',
+    'NOVECIENTOS '
+)
+
+UNITS = (
+        ('',''),
+        ('MIL ','MIL '),
+        ('MILLON ','MILLONES '),
+        ('MIL MILLONES ','MIL MILLONES '),
+        ('BILLON ','BILLONES '),
+        ('MIL BILLONES ','MIL BILLONES '),
+        ('TRILLON ','TRILLONES '),
+        ('MIL TRILLONES','MIL TRILLONES'),
+        ('CUATRILLON','CUATRILLONES'),
+        ('MIL CUATRILLONES','MIL CUATRILLONES'),
+        ('QUINTILLON','QUINTILLONES'),
+        ('MIL QUINTILLONES','MIL QUINTILLONES'),
+        ('SEXTILLON','SEXTILLONES'),
+        ('MIL SEXTILLONES','MIL SEXTILLONES'),
+        ('SEPTILLON','SEPTILLONES'),
+        ('MIL SEPTILLONES','MIL SEPTILLONES'),
+        ('OCTILLON','OCTILLONES'),
+        ('MIL OCTILLONES','MIL OCTILLONES'),
+        ('NONILLON','NONILLONES'),
+        ('MIL NONILLONES','MIL NONILLONES'),
+        ('DECILLON','DECILLONES'),
+        ('MIL DECILLONES','MIL DECILLONES'),
+        ('UNDECILLON','UNDECILLONES'),
+        ('MIL UNDECILLONES','MIL UNDECILLONES'),
+        ('DUODECILLON','DUODECILLONES'),
+        ('MIL DUODECILLONES','MIL DUODECILLONES'),
+)
+
+MONEDAS = (
+    {'country': u'Colombia', 'currency': 'COP', 'singular': u'PESO COLOMBIANO', 'plural': u'PESOS COLOMBIANOS', 'symbol': u'$'},
+    {'country': u'Estados Unidos', 'currency': 'USD', 'singular': u'DÓLAR', 'plural': u'DÓLARES', 'symbol': u'US$'},
+    {'country': u'Europa', 'currency': 'EUR', 'singular': u'EURO', 'plural': u'EUROS', 'symbol': u'€'},
+    {'country': u'México', 'currency': 'MXN', 'singular': u'PESO MEXICANO', 'plural': u'PESOS MEXICANOS', 'symbol': u'$'},
+    {'country': u'Peru', 'currency': 'PEN', 'singular': u'NUEVO SOL', 'plural': u'NUEVOS SOLES', 'symbol': u'S/.'},
+    {'country': u'Reino Unido', 'currency': 'GBP', 'singular': u'LIBRA', 'plural': u'LIBRAS', 'symbol': u'£'},
+    {'country': u'Argentina', 'currency': 'ARS', 'singular': u'peso', 'plural': u'pesos', 'symbol': u'$'}
+)
+def hundreds_word(number):
+    """Converts a positive number less than a thousand (1000) to words in Spanish
+
+    Args:
+        number (int): A positive number less than 1000
+    Returns:
+        A string in Spanish with first letters capitalized representing the number in letters
+
+    Examples:
+        >>> to_word(123)
+        'Ciento Ventitres'
+    """
+    converted = ''
+    if not (0 < number < 1000):
+        return 'No es posible convertir el numero a letras'
+
+    number_str = str(number).zfill(9)
+    cientos = number_str[6:]
+
+
+    if(cientos):
+        if(cientos == '001'):
+            converted += 'UN '
+        elif(int(cientos) > 0):
+            converted += '%s ' % __convert_group(cientos)
+
+
+    return converted.title().strip()
+
+
+
+def __convert_group(n):
+    """Turn each group of numbers into letters"""
+    output = ''
+
+    if(n == '100'):
+        output = "CIEN "
+    elif(n[0] != '0'):
+        output = CENTENAS[int(n[0]) - 1]
+
+    k = int(n[1:])
+    if(k <= 20):
+        output += UNIDADES[k]
+    else:
+        if((k > 30) & (n[2] != '0')):
+            output += '%sY %s' % (DECENAS[int(n[1]) - 2], UNIDADES[int(n[2])])
+        else:
+            output += '%s%s' % (DECENAS[int(n[1]) - 2], UNIDADES[int(n[2])])
+
+    return output
+
+def to_word(number, mi_moneda=None):
+
+    """Converts a positive number less than:
+    (999999999999999999999999999999999999999999999999999999999999999999999999)
+    to words in Spanish
+
+    Args:
+        number (int): A positive number less than specified above
+        mi_moneda(str,optional): A string in ISO 4217 short format
+    Returns:
+        A string in Spanish with first letters capitalized representing the number in letters
+
+    Examples:
+        >>> number_words(53625999567)
+        'Cincuenta Y Tres Mil Seiscientos Venticinco Millones Novecientos Noventa Y Nueve Mil Quinientos Sesenta Y Siete'
+    """
+    #~ if mi_moneda != None:
+        #~ try:
+            #~ moneda = ifilter(lambda x: x['currency'] == mi_moneda, MONEDAS).next()
+            #~ if number < 2:
+                #~ moneda = moneda['singular']
+            #~ else:
+                #~ moneda = moneda['plural']
+        #~ except:
+            #~ return "Tipo de moneda invalida"
+    #~ else:
+    moneda = ""
+
+    human_readable = []
+    num_units = format(number,',').split(',')
+    for i,n in enumerate(num_units):
+        if int(n) != 0:
+            words = hundreds_word(int(n))
+            units = UNITS[len(num_units)-i-1][0 if int(n) == 1 else 1]
+            human_readable.append([words,units])
+
+    #filtrar MIL MILLONES - MILLONES -> MIL - MILLONES
+    for i,item in enumerate(human_readable):
+        try:
+            if human_readable[i][1].find(human_readable[i+1][1]):
+                human_readable[i][1] = human_readable[i][1].replace(human_readable[i+1][1],'')
+        except IndexError:
+            pass
+    human_readable = [item for sublist in human_readable for item in sublist]
+    human_readable.append(moneda)
+    return ' '.join(human_readable).replace('  ',' ').title().strip()
+    
+
 class order(report_sxw.rml_parse):
+    
+    
+    def _get_amount_to_text(self, uid, original, context=None):
+        res = {}
+        parte_decimal = int(round(abs(original)-abs(int(original)),2)*100)
+        aux = ''
+        if parte_decimal:
+            return to_word(int(original),'ARS').lower() + ' de pesos con ' + str(parte_decimal) + '/100'
+            
+        return to_word(int(original),'ARS').lower() + ' de pesos'
+        
     def __init__(self, cr, uid, name, context=None):
         super(order, self).__init__(cr, uid, name, context=context)
         self.localcontext.update({
@@ -84,7 +231,7 @@ class order(report_sxw.rml_parse):
             'show_cheques_recibo_terceros':self._show_cheques_recibo_terceros,
             'show_cheques_terceros':self._show_cheques_terceros,
             'show_retenciones':self._show_retenciones,
-            'amount_to_text_sp': amount_to_text_sp.amount_to_text_sp,
+            'amount_to_text_sp': self._get_amount_to_text,
             'saldo': self._saldo,
         })
 
@@ -92,19 +239,19 @@ class order(report_sxw.rml_parse):
         cr = self.cr
         cr.execute('select sum(amount) from payment_mode_receipt_line where voucher_id=%s',(voucher_id,))
         aux = cr.fetchone()
-        return aux[0] or 0.0
+        return aux[0]
 
     def _show_cheques_propios(self, uid, voucher_id, context=None):
         cr = self.cr
         cr.execute('select sum(amount) from account_issued_check where voucher_id=%s',(voucher_id,))
         aux = cr.fetchone()
-        return aux[0] or 0.0
+        return aux[0]
 
     def _show_cheques_recibo_terceros(self, uid, voucher_id, context=None):
         cr = self.cr
         cr.execute('select sum(amount) from account_third_check where source_voucher_id=%s',(voucher_id,))
         aux = cr.fetchone()
-        return aux[0] or 0.0
+        return aux[0]
 
     def _show_cheques_terceros(self, uid, voucher_id, context=None):
         cr = self.cr
@@ -112,25 +259,25 @@ class order(report_sxw.rml_parse):
         cr.execute('select sum(tc.amount) from third_check_voucher_rel tr, account_third_check tc \
                     where tr.third_check_id=tc.id and tr.dest_voucher_id=%s',(voucher_id,))
         aux = cr.fetchone()
-        return aux[0] or 0.0
+        return aux[0]
         
     def _show_comprobantes_cr(self, uid, voucher_id, context=None):
         cr = self.cr
         cr.execute('select sum(amount) from account_voucher_line where voucher_id=%s and type=%s',(voucher_id,'cr',))
         aux = cr.fetchone()
-        return aux[0] or 0.0
+        return aux[0]
         
     def _show_comprobantes_dr(self, uid, voucher_id, context=None):
         cr = self.cr
         cr.execute('select sum(amount) from account_voucher_line where voucher_id=%s and type=%s',(voucher_id,'dr',))
         aux = cr.fetchone()
-        return aux[0] or 0.0
+        return aux[0]
         
     def _show_retenciones(self, uid, voucher_id, context=None):
         cr = self.cr
         cr.execute('select sum(amount) from retention_tax_line where voucher_id=%s',(voucher_id,))
         aux = cr.fetchone()
-        return aux[0] or 0.0
+        return aux[0]
         
     def _saldo(self, original, amount, context=None):
         return original - amount
