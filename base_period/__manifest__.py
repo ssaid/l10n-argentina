@@ -38,6 +38,7 @@
         "views/stock_inventory_view.xml",
         "views/menuitems.xml",
     ],
+    "pre_init_hook": 'load',
     "installable": True,
     "application": True,
 }
