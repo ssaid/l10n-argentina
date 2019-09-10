@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+
+        <record id="voucher_invoice_A" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Factura A</field>
+            <field name="code">1</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">invoice</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_A"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_debit_note_A" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">ND A</field>
+            <field name="code">2</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">debit</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_A"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_credit_note_A" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">NC A</field>
+            <field name="code">3</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">refund</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_A"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_invoice_B" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Factura B</field>
+            <field name="code">6</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">invoice</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_B"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_debit_note_B" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">ND B</field>
+            <field name="code">7</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">debit</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_B"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_credit_note_B" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">NC B</field>
+            <field name="code">8</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">refund</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_B"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_invoice_C" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Factura C</field>
+            <field name="code">11</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">invoice</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_C"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_debit_note_C" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">ND C</field>
+            <field name="code">12</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">debit</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_C"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_credit_note_C" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">NC C</field>
+            <field name="code">13</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">refund</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_C"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_invoice_E" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Factura de exportación</field>
+            <field name="code">19</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">invoice</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_E"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_debit_note_E" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Notas de débito por operaciones con el exterior</field>
+            <field name="code">20</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">debit</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_E"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_credit_note_E" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Notas de crédito por operaciones con el exterior</field>
+            <field name="code">21</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">refund</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_E"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_invoice_M" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Factura M</field>
+            <field name="code">51</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">invoice</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_M"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_debit_note_M" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Notas de débito M</field>
+            <field name="code">52</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">debit</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_M"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_credit_note_M" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Notas de crédito M</field>
+            <field name="code">53</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">refund</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_M"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_normal"/>
+        </record>
+
+        <record id="voucher_e_invoice_A" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Factura de crédito electrónica A</field>
+            <field name="code">201</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">invoice</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_A"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+        <record id="voucher_e_debit_note_A" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Nota de débito electrónica A</field>
+            <field name="code">202</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">debit</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_A"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+        <record id="voucher_e_credit_note_A" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Nota de crédito electrónica A</field>
+            <field name="code">203</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">refund</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_A"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+        <record id="voucher_e_invoice_B" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Factura de crédito electrónica B</field>
+            <field name="code">206</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">invoice</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_B"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+        <record id="voucher_e_debit_note_B" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Nota de débito electrónica B</field>
+            <field name="code">207</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">debit</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_B"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+        <record id="voucher_e_credit_note_B" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Nota de crédito electrónica B</field>
+            <field name="code">208</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">refund</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_B"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+        <record id="voucher_e_invoice_C" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Factura de crédito electrónica C</field>
+            <field name="code">211</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">invoice</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_C"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+        <record id="voucher_e_debit_note_C" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Nota de débito electrónica C</field>
+            <field name="code">212</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">debit</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_C"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+        <record id="voucher_e_credit_note_C" model="wsfe.voucher_type" forcecreate="1">
+            <field name="name">Nota de crédito electrónica C</field>
+            <field name="code">213</field>
+            <field name="voucher_model">account.invoice</field>
+            <field name="document_type">refund</field>
+            <field name="denomination_id" ref="l10n_ar_point_of_sale.denomination_C"/>
+            <field name="fiscal_type_id" ref="l10n_ar_wsfe.fiscal_type_fcred"/>
+        </record>
+
+    </data>
+</openerp>

@@ -67,6 +67,17 @@
 									<button name="read_tax" string="Update VAT Taxes" type="object" icon="gtk-ok"/>
 								</group>
 							</page>
+                                                        <page string="Optionals">
+                                                            <field name="optional_ids" nolabel="1">
+                                                                <tree string="Vat Taxes Mapping" readonly="1">
+                                                                    <field name="code"/>
+                                                                    <field name="name"/>
+                                                                    <field name="to_date"/>
+                                                                    <field name="from_date"/>
+                                                                    <field name="from_afip" readonly="True"/>
+                                                                </tree>
+                                                            </field>
+                                                        </page>
 						</notebook>
 					</sheet>
 				</form>
@@ -275,6 +286,7 @@
 								<field name="document_type"  />
 							</group>
 							<field name="denomination_id" />
+                                                        <field name="fiscal_type_id" />
 						</group>
 					</sheet>
 				</form>
@@ -293,6 +305,7 @@
 					<field name="voucher_model" />
 					<field name="document_type" />
 					<field name="denomination_id"/>
+                                        <field name="fiscal_type_id" />
 				</tree>
 			</field>
 		</record>

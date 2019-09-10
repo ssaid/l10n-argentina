@@ -5,8 +5,8 @@
 #    Copyright (c) 2013 E-MIPS (http://www.e-mips.com.ar) All Rights Reserved.
 #
 #    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
@@ -20,51 +20,179 @@
 ##############################################################################
 
 from osv import osv, fields
-from datetime import datetime
 from tools.translate import _
 import pooler
-import time
 import re
 
 __author__ = "Sebastian Kennedy <skennedy@e-mips.com.ar>"
+
+
+class invoice_wsfe_optional(osv.osv):
+    _name = "account.invoice.optional"
+    _description = 'WSFE Invoice Optional'
+
+    _columns = {
+        'invoice_id': fields.many2one('account.invoice', 'Invoice'),
+        'optional_id': fields.many2one('wsfe.optionals', 'Optional'),
+        'value': fields.char('Value', size=255),
+    }
+
 
 class account_invoice(osv.osv):
     _name = "account.invoice"
     _inherit = "account.invoice"
 
+    def _default_fiscal_type_id(self, cr, uid, context=None):
+        obj_data = self.pool.get('ir.model.data')
+        try:
+            fiscal_type_normal_id = obj_data.get_object_reference(
+                cr, uid, 'l10n_ar_wsfe', 'fiscal_type_normal')[1]
+        except Exception:
+            return False
+        return fiscal_type_normal_id
+
+    def _get_voucher_type(
+            self, cr, uid, invoice, context=None):
+
+        voucher_type_obj = self.pool.get('wsfe.voucher_type')
+        model = invoice._name
+
+        if invoice.type in ('out_invoice', 'in_invoice'):
+            invoice_type = 'invoice'
+            if invoice.is_debit_note:
+                invoice_type = 'debit'
+        else:
+            invoice_type = 'refund'
+
+        res = voucher_type_obj.search(
+            cr, uid, [
+                ('voucher_model', '=', model),
+                ('document_type', '=', invoice_type),
+                ('denomination_id', '=', invoice.denomination_id.id),
+                ('fiscal_type_id', '=', invoice.fiscal_type_id.id)])
+
+        if not len(res):
+            return
+
+        if len(res) > 1:
+            raise osv.except_osv(
+                _("Voucher type error!"),
+                _("There is more than one voucher type "
+                  "that corresponds to this object"))
+
+        return res[0]
+
+    def _compute_voucher_type_id(self, cr, uid, ids, name, arg, context=None):
+
+        result = {}
+        for invoice in self.browse(cr, uid, ids, context=context):
+
+            res = self._get_voucher_type(cr, uid, invoice)
+            result[invoice.id] = res
+
+        return result
+
     _columns = {
-        'aut_cae': fields.boolean('Autorizar', help='Pedido de autorizacion a la AFIP'),
-        'cae': fields.char('CAE/CAI', size=32, required=False, help='CAE (Codigo de Autorizacion Electronico assigned by AFIP.)'),
-        'cae_due_date': fields.date('CAE Due Date', required=False, help='Fecha de vencimiento del CAE'),
-        'associated_inv_ids': fields.many2many('account.invoice', 'account_invoice_associated_rel', 'invoice_id', 'refund_debit_id'),
+        'aut_cae': fields.boolean(
+            'Autorizar', help='Pedido de autorizacion a la AFIP'),
+        'cae': fields.char(
+            'CAE/CAI', size=32, required=False,
+            help='CAE (Codigo de Autorizacion Electronico assigned by AFIP.)'),
+        'cae_due_date': fields.date(
+            'CAE Due Date', required=False,
+            help='Fecha de vencimiento del CAE'),
+        'associated_inv_ids': fields.many2many(
+            'account.invoice', 'account_invoice_associated_rel',
+            'invoice_id', 'refund_debit_id'),
         # Campos para facturas de exportacion. Aca ninguno es requerido,
-        # eso lo hacemos en la vista ya que depende de si es o no factura de exportacion
-        'export_type_id': fields.many2one('wsfex.export_type.codes', 'Export Type'),
-        'dst_country_id': fields.many2one('wsfex.dst_country.codes', 'Dest Country'),
+        # eso lo hacemos en la vista ya que depende
+        # de si es o no factura de exportacion
+        'export_type_id': fields.many2one(
+            'wsfex.export_type.codes', 'Export Type'),
+        'dst_country_id': fields.many2one(
+            'wsfex.dst_country.codes', 'Dest Country'),
         'dst_cuit_id': fields.many2one('wsfex.dst_cuit.codes', 'Country CUIT'),
-        'shipping_perm_ids': fields.one2many('wsfex.shipping.permission', 'invoice_id', 'Shipping Permissions'),
-        'incoterm_id': fields.many2one('stock.incoterms', 'Incoterm', help="International Commercial Terms are a series of predefined commercial terms used in international transactions."),
+        'shipping_perm_ids': fields.one2many(
+            'wsfex.shipping.permission', 'invoice_id', 'Shipping Permissions'),
+        'incoterm_id': fields.many2one(
+            'stock.incoterms', 'Incoterm',
+            help="International Commercial Terms are a series of predefined "
+            "commercial terms used in international transactions."),
         'wsfe_request_ids': fields.one2many('wsfe.request.detail', 'name'),
-        'wsfex_request_ids': fields.one2many('wsfex.request.detail', 'invoice_id'),
+        'wsfex_request_ids': fields.one2many(
+            'wsfex.request.detail', 'invoice_id'),
+        'optional_ids': fields.one2many(
+            'account.invoice.optional', 'invoice_id', 'Optionals'),
+        'fiscal_type_id': fields.many2one(
+            'account.invoice.fiscal.type', 'Fiscal type'),
+        'voucher_type_id': fields.function(
+            _compute_voucher_type_id, type='many2one',
+            obj='wsfe.voucher_type', method=True, string='Voucher type',
+            store={'account.invoice': (
+                lambda self, cr, uid, ids, c={}: ids, [
+                    'denomination_id',
+                    'fiscal_type_id',
+                    'type',
+                ], 10)}),
     }
 
     _defaults = {
         'aut_cae': lambda *a: False,
+        'fiscal_type_id': _default_fiscal_type_id,
     }
 
-    def onchange_partner_id(self, cr, uid, ids, type, partner_id,\
-            date_invoice=False, payment_term=False, partner_bank_id=False, company_id=False , context=None):
-        res =   super(account_invoice, self).onchange_partner_id(cr, uid, ids, type, partner_id,\
-                date_invoice=False, payment_term=False, partner_bank_id=False, company_id=False)
+    def get_fiscal_type_id(self, cr, uid, ids, partner, context=None):
+        obj_data = self.pool.get('ir.model.data')
+
+        if partner:
+            receipt_wsfcred = partner.receipt_wsfcred
+
+            if receipt_wsfcred:
+                return obj_data.get_object_reference(
+                    cr, uid, 'l10n_ar_wsfe', 'fiscal_type_fcred')[1]
+            else:
+                return obj_data.get_object_reference(
+                    cr, uid, 'l10n_ar_wsfe', 'fiscal_type_normal')[1]
+
+#    # TODO: Migrate
+#    @api.multi
+#    def invoice_validate(self):
+#	for inv in self:
+#	    message = ""
+#	    if not inv.fiscal_type_id:
+#	        message += _("\nThe invoice must have a fiscal type")
+#	    if not inv.voucher_type_id:
+#	        message += _("\nThe invoice must have a voucher type")
+#	    if len(message):
+#	        raise osv.except_osv(_("Invoice validation error!"), message)
+#	return super(account_invoice, self).invoice_validate()
+
+    def onchange_partner_id(
+            self, cr, uid, ids, type, partner_id, date_invoice=False,
+            payment_term=False, partner_bank_id=False, company_id=False ,
+            context=None):
+
+        country_codes_obj = self.pool.get('wsfex.dst_country.codes')
+
+        res = super(account_invoice, self).onchange_partner_id(
+            cr, uid, ids, type, partner_id,date_invoice=False,
+            payment_term=False, partner_bank_id=False, company_id=False)
 
         if partner_id:
-            partner = self.pool.get('res.partner').browse(cr, uid, partner_id, context=context)
+            partner = self.pool.get('res.partner').browse(
+                cr, uid, partner_id, context=context)
+
             country_id = partner.country_id.id or False
             if country_id:
-                dst_country = self.pool.get('wsfex.dst_country.codes').search(cr, uid, [('country_id','=',country_id)])
+                dst_country = country_codes_obj.search(
+                    cr, uid, [('country_id','=',country_id)])
 
                 if dst_country:
                     res['value'].update({'dst_country_id': dst_country[0]})
+
+                fiscal_type_id = self.get_fiscal_type_id(cr, uid, ids, partner)
+                res['value'].update({'fiscal_type_id': fiscal_type_id})
+
         return res
 
     # Esto lo hacemos porque al hacer una nota de credito, no le setea la fiscal_position
@@ -78,7 +206,7 @@ class account_invoice(osv.osv):
             invoice = self.browse(cr, uid, ids[0])
             if not refund.fiscal_position:
                 fiscal_position = refund.partner_id.property_account_position
-                vals = {'fiscal_position':fiscal_position.id}
+                vals['fiscal_position'] = fiscal_position.id
 
             # Agregamos el comprobante asociado y otros campos necesarios
             # si es de exportacion
@@ -88,6 +216,7 @@ class account_invoice(osv.osv):
                 vals['dst_cuit_id'] = invoice.dst_cuit_id.id
 
             vals['associated_inv_ids'] = [(4, invoice.id)]
+            vals['fiscal_type_id'] = invoice.fiscal_type_id.id
 
             if vals:
                 self.write(cr, uid, refund_id, vals)
@@ -106,8 +235,9 @@ class account_invoice(osv.osv):
 
             # Chequeamos que la posicion fiscal y la denomination_id coincidan
             if inv.fiscal_position.denomination_id.id != denomination_id:
-                raise osv.except_osv( _('Error'),
-                            _('The invoice denomination does not corresponds with this fiscal position.'))
+                raise osv.except_osv(
+                    _('Error'),
+                    _('The invoice denomination does not corresponds with this fiscal position.'))
 
         # Si es factura de proveedor
         else:
@@ -116,13 +246,15 @@ class account_invoice(osv.osv):
 
             # Chequeamos que la posicion fiscal y la denomination_id coincidan
             if inv.fiscal_position.denom_supplier_id.id != inv.denomination_id.id:
-                raise osv.except_osv( _('Error'),
-                                    _('The invoice denomination does not corresponds with this fiscal position.'))
+                raise osv.except_osv(
+                    _('Error'),
+                    _('The invoice denomination does not corresponds with this fiscal position.'))
 
         # Chequeamos que la posicion fiscal de la factura y del cliente tambien coincidan
         if inv.fiscal_position.id != inv.partner_id.property_account_position.id:
-            raise osv.except_osv( _('Error'),
-                                _('The invoice fiscal position is not the same as the partner\'s fiscal position.'))
+            raise osv.except_osv(
+                _('Error'),
+                _('The invoice fiscal position is not the same as the partner\'s fiscal position.'))
 
         return True
 
@@ -131,7 +263,8 @@ class account_invoice(osv.osv):
         conf_obj = conf._model
 
         # Obtenemos el tipo de comprobante
-        tipo_cbte = voucher_type_obj.get_voucher_type(cr, uid, inv, context=context)
+        # tipo_cbte = voucher_type_obj.get_voucher_type(cr, uid, inv, context=context)
+        tipo_cbte = inv.voucher_type_id.code
         try:
             pto_vta = int(inv.pos_ar_id.name)
         except ValueError:
@@ -144,7 +277,20 @@ class account_invoice(osv.osv):
         """Funcion para obtener el siguiente numero de comprobante correspondiente en el sistema"""
 
         # Obtenemos el ultimo numero de comprobante para ese pos y ese tipo de comprobante
-        cr.execute("select max(to_number(substring(internal_number from '[0-9]{8}$'), '99999999')) from account_invoice where internal_number ~ '^[0-9]{4}-[0-9]{8}$' and pos_ar_id=%s and state in %s and type=%s and is_debit_note=%s", (invoice.pos_ar_id.id, ('open', 'paid', 'cancel',), invoice.type, invoice.is_debit_note))
+        q = """
+            SELECT max(to_number(substring(internal_number from '[0-9]{8}$'), '99999999'))
+            FROM account_invoice
+            WHERE internal_number ~ '^[0-9]{4}-[0-9]{8}$'
+                AND pos_ar_id = %s
+                AND state in %s
+                AND type = %s
+                AND is_debit_note = %s
+                AND voucher_type_id = %s
+            """
+        states = ('open', 'paid', 'cancel',)
+        cr.execute(q, (invoice.pos_ar_id.id, states, invoice.type,
+                       invoice.is_debit_note, invoice.voucher_type_id.id))
+
         last_number = cr.fetchone()
 
         # Si no devuelve resultados, es porque es el primero
@@ -161,7 +307,9 @@ class account_invoice(osv.osv):
         invoices = self.read(cr, uid, ids, ['aut_cae'])
         for i in invoices:
             if i['aut_cae']:
-                raise osv.except_osv(_("Electronic Invoice Error!"), _("You cannot cancel an Electronic Invoice because it has been informed to AFIP."))
+                raise osv.except_osv(
+                    _("Electronic Invoice Error!"),
+                    _("You cannot cancel an Electronic Invoice because it has been informed to AFIP."))
 
         return super(account_invoice, self).action_cancel(cr, uid, ids, context=context)
 
@@ -203,7 +351,7 @@ class account_invoice(osv.osv):
 
             # si el usuario no ingreso un numero, busco el ultimo y lo incremento , si no hay ultimo va 1.
             # si el usuario hizo un ingreso dejo ese numero
-            internal_number = obj_inv.internal_number #False
+            internal_number = obj_inv.internal_number  # False
             next_number = False
 
             # Si son de Cliente
@@ -237,7 +385,6 @@ class account_invoice(osv.osv):
                     if obj_inv.internal_number:
                         internal_number = obj_inv.internal_number
 
-
                 # Lo ponemos como en Proveedores, o sea, A0001-00000001
                 if not internal_number:
                     internal_number = '%s-%08d' % (pos_ar.name, next_number)
@@ -258,7 +405,6 @@ class account_invoice(osv.osv):
                     m = re.match('^[0-9]{4}-[0-9]{8}$', obj_inv.internal_number)
                     if not m:
                         raise osv.except_osv( _('Error'), _('The Invoice Number should be the format XXXX-XXXXXXXX'))
-
 
             # Escribimos los campos necesarios de la factura
             self.write(cr, uid, obj_inv.id, invoice_vals)
@@ -291,7 +437,6 @@ class account_invoice(osv.osv):
 #
 #        details = conf_obj.prepare_details(cr, uid, conf, ids, context=context)
 #        return details
-
 
     def hook_add_taxes(self, cr, uid, inv, detalle):
         return detalle
@@ -326,7 +471,7 @@ class account_invoice(osv.osv):
             conf_obj = conf._model
 
             # Obtenemos el tipo de comprobante
-            tipo_cbte = voucher_type_obj.get_voucher_type(cr, uid, inv, context=context)
+            tipo_cbte = inv.voucher_type_id.code #voucher_type_obj.get_voucher_type(cr, uid, inv, context=context)
 
             # Obtenemos el numero de comprobante a enviar a la AFIP teniendo en
             # cuenta que inv.number == 000X-00000NN o algo similar.
@@ -364,5 +509,3 @@ class account_invoice(osv.osv):
                     cr2.close()
 
         return True
-
-account_invoice()

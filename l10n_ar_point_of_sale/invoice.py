@@ -27,6 +27,7 @@ import decimal_precision as dp
 import time
 import re
 
+
 class invoice(osv.osv):
     _name = "account.invoice"
     _inherit = "account.invoice"
@@ -147,61 +148,61 @@ class invoice(osv.osv):
 
     _columns = {
         'type': fields.selection([
-            ('out_invoice','Customer Invoice'),
-            ('in_invoice','Supplier Invoice'),
-            ('out_refund','Customer Refund'),
-            ('in_refund','Supplier Refund'),
+            ('out_invoice', 'Customer Invoice'),
+            ('in_invoice', 'Supplier Invoice'),
+            ('out_refund', 'Customer Refund'),
+            ('in_refund', 'Supplier Refund'),
             ],'Type', readonly=True, select=True, change_default=True),
-        'pos_ar_id' : fields.many2one('pos.ar','Point of Sale', readonly=True, states={'draft':[('readonly',False)]}),
+        'pos_ar_id': fields.many2one('pos.ar','Point of Sale', readonly=True, states={'draft':[('readonly',False)]}),
         'is_debit_note': fields.boolean('Debit Note'),
-        'denomination_id' : fields.many2one('invoice.denomination','Denomination', readonly=True, states={'draft':[('readonly',False)]}),
+        'denomination_id': fields.many2one('invoice.denomination','Denomination', readonly=True, states={'draft':[('readonly',False)]}),
         'internal_number': fields.char('Invoice Number', size=32, readonly=True, states={'draft':[('readonly',False)]}, help="Unique number of the invoice, computed automatically when the invoice is created."),
         'local': fields.related('fiscal_position', 'local', type="boolean", string="Local", store=True),
         'is_final_consumer': fields.related('fiscal_position', 'is_final_consumer', type="boolean",
                                             string="Final Consumer", store=True),
         'contact_vat': fields.char('Contact VAT', size=32),
         'amount_exempt': fields.function(_amount_all_ar, method=True, digits_compute=dp.get_precision('Account'), string='Amount Exempt',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
-                'account.invoice.tax': (_get_invoice_tax, None, 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='all'),
+                                         store={
+                                            'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
+                                            'account.invoice.tax': (_get_invoice_tax, None, 20),
+                                            'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                                         },
+                                         multi='all'),
         'amount_no_taxed': fields.function(_amount_all_ar, method=True, digits_compute=dp.get_precision('Account'), string='No Taxed',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
-                'account.invoice.tax': (_get_invoice_tax, None, 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='all'),
+                                           store={
+                                            'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
+                                            'account.invoice.tax': (_get_invoice_tax, None, 20),
+                                            'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                                          },
+                                          multi='all'),
         'amount_taxed': fields.function(_amount_all_ar, method=True, digits_compute=dp.get_precision('Account'), string='Taxed',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
-                'account.invoice.tax': (_get_invoice_tax, None, 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='all'),
+                                        store={
+                                            'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
+                                            'account.invoice.tax': (_get_invoice_tax, None, 20),
+                                            'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                                        },
+                                        multi='all'),
         'amount_untaxed': fields.function(_amount_all_ar, method=True, digits_compute=dp.get_precision('Account'), string='Untaxed',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
-                'account.invoice.tax': (_get_invoice_tax, None, 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='all'),
+                                          store={
+                                            'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
+                                            'account.invoice.tax': (_get_invoice_tax, None, 20),
+                                            'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                                          },
+                                          multi='all'),
         'amount_tax': fields.function(_amount_all_ar, method=True, digits_compute=dp.get_precision('Account'), string='Tax',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
-                'account.invoice.tax': (_get_invoice_tax, None, 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='all'),
+                                      store={
+                                        'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
+                                        'account.invoice.tax': (_get_invoice_tax, None, 20),
+                                        'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                                      },
+                                      multi='all'),
         'amount_total': fields.function(_amount_all_ar, method=True, digits_compute=dp.get_precision('Account'), string='Total',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
-                'account.invoice.tax': (_get_invoice_tax, None, 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='all'),
+                                        store={
+                                            'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),
+                                            'account.invoice.tax': (_get_invoice_tax, None, 20),
+                                            'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                                        },
+                                        multi='all'),
     }
 
     _defaults = {
@@ -209,21 +210,27 @@ class invoice(osv.osv):
             'local': lambda *a: True,
     }
 
-    #Validacion para que el total de una invoice no pueda ser negativo.
-    def _check_amount_total(self,cr,uid,ids,context=None):
-        for invoice in self.read(cr,uid,ids,['amount_total'],context=context):
-            if invoice['amount_total'] < 0 :
+    # Validacion para que el total de una invoice no pueda ser negativo.
+    def _check_amount_total(self, cr, uid, ids, context=None):
+        for invoice in self.read(cr, uid, ids, ['amount_total'], context=context):
+            if invoice['amount_total'] < 0:
                 return False
         return True
 
     def _check_duplicate(self, cr, uid, ids, context=None):
         fiscal_pos_obj = self.pool.get('account.fiscal.position')
+        invoices = self.read(cr, uid, ids,
+                             ['denomination_id', 'pos_ar_id',
+                              'type', 'voucher_type_id', 'is_debit_note',
+                              'internal_number', 'partner_id',
+                              'state', 'fiscal_position',
+                              'company_id', ], context=context)
 
-        for invoice in self.read(cr, uid, ids, ['denomination_id', 'pos_ar_id', 'type', 'is_debit_note', 'internal_number', 'partner_id', 'state', 'fiscal_position', 'company_id'], context=context):
-
+        for invoice in invoices:
             denomination_id = invoice['denomination_id'] and invoice['denomination_id'][0] or False
             pos_ar_id = invoice['pos_ar_id'] and invoice['pos_ar_id'][0] or False
             partner_id = invoice['partner_id'] and invoice['partner_id'][0] or False
+            voucher_type_id = invoice['voucher_type_id'] or False
 
             if invoice['type'] in ('in_invoice', 'in_refund'):
                 local = False
@@ -240,17 +247,37 @@ class invoice(osv.osv):
                 return True
 
             if invoice['type'] in ['out_invoice', 'out_refund']:
-                count = self.search_count(cr, uid, [('denomination_id','=',denomination_id), ('pos_ar_id','=',pos_ar_id), ('is_debit_note','=',invoice['is_debit_note']), ('internal_number','!=', False), ('internal_number','!=',''), ('internal_number','=',invoice['internal_number']), ('type','=',invoice['type']), ('state','!=','cancel')])
+                count = self.search_count(
+                    cr, uid, [('denomination_id', '=', denomination_id),
+                              ('pos_ar_id', '=', pos_ar_id),
+                              ('is_debit_note', '=', invoice['is_debit_note']),
+                              ('internal_number', '!=', False),
+                              ('internal_number', '!=', ''),
+                              ('internal_number', '=', invoice['internal_number']),
+                              ('type', '=', invoice['type']),
+                              ('voucher_type_id', '=', voucher_type_id),
+                              ('state', '!=', 'cancel')])
                 if count > 1:
                     return False
+
             else:
-                count = self.search_count(cr, uid, [('denomination_id','=',denomination_id), ('is_debit_note','=',invoice['is_debit_note']), ('partner_id','=',partner_id), ('internal_number','!=', False), ('internal_number','!=',''), ('internal_number','=', invoice['internal_number']), ('type','=',invoice['type']), ('state','!=','cancel')])
+                count = self.search_count(
+                    cr, uid, [('denomination_id', '=', denomination_id),
+                              ('is_debit_note', '=', invoice['is_debit_note']),
+                              ('partner_id', '=', partner_id),
+                              ('internal_number', '!=', False),
+                              ('internal_number', '!=', ''),
+                              ('internal_number', '=', invoice['internal_number']),
+                              ('type', '=', invoice['type']),
+                              ('voucher_type_id', '=', voucher_type_id),
+                              ('state', '!=', 'cancel')])
                 if count > 1:
                     return False
+
         return True
 
     _constraints = [
-        (_check_duplicate, 'Error! The Invoice is duplicated.', ['denomination_id', 'pos_ar_id', 'type', 'is_debit_note', 'internal_number']),
+        (_check_duplicate, 'Error! The Invoice is duplicated.', ['denomination_id', 'pos_ar_id', 'type', 'is_debit_note', 'internal_number', 'voucher_type_id']),
         (_check_amount_total, 'Error! The total amount cannot be negative',['amount_total']),
     ]
 

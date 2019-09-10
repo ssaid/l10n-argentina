@@ -331,6 +331,7 @@ class WSFEv1:
         for detalle in detalles:
             arrayIva = []
             arrayTributos = []
+            arrayOpcionales = []
 
             argdetreq = self.client.factory.create('ns0:FECAEDetRequest')
 
@@ -358,6 +359,17 @@ class WSFEv1:
 
                             arrayTributos.append(argtrib)
                             continue
+                    elif k == 'Opcionales':
+                        for op in v:
+                            argopc = self.client.factory.create('ns0:Opcional')
+                            for k, v in op.iteritems():
+                                if k in argopc:
+                                    argopc[k] = v
+                                else:
+                                    argopc[k] = None
+
+                            arrayOpcionales.append(argopc)
+                            continue
                 else:
                     if k in argdetreq:
                         argdetreq[k] = v
@@ -368,6 +380,8 @@ class WSFEv1:
                 argdetreq.Iva.AlicIva.append(arrayIva)
             if len(arrayTributos):
                 argdetreq.Tributos.Tributo.append(arrayTributos)
+            if len(arrayOpcionales):
+                argdetreq.Opcionales.Opcional.append(arrayOpcionales)
             argcaereq.FeDetReq.FECAEDetRequest.append(argdetreq)
 
         result = self.client.service.FECAESolicitar(self.argauth, argcaereq)

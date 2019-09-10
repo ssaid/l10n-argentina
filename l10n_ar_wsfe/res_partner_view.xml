@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="wsfe_res_partner_view_form" model="ir.ui.view">
+            <field name="name">wsfe.res.partner.form.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <field name="property_account_position" position="after">
+                    <field name="receipt_wsfcred"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>

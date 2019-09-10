@@ -18,6 +18,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+import partner
+import account_invoice_fiscal_type
 import wsfe
 import wsfex
 import invoice

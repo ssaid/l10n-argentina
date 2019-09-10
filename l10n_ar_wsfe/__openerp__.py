@@ -21,7 +21,7 @@
 
 {
     "name": "WSFE (Factura Electronica)",
-    "version": "2.0",
+    "version": "7.0.2.1",
     "depends": ["base", "account", "base_vat_ar", "l10n_ar_point_of_sale", "l10n_ar_wsaa"],
     "author": "E-MIPS",
     "website": "http://e-mips.com.ar",
@@ -37,8 +37,11 @@
         'wsfe_view.xml',
         'account_invoice_view.xml',
         'account_invoice_workflow.xml',
+        'res_partner_view.xml',
         'wizard/wsfe_sinchronize_voucher_view.xml',
         'security/ir.model.access.csv',
+        'account_invoice_fiscal_type_data.xml',
+        'voucher_type_data.xml',
     ],
     'demo': [
         'wsfe_demo.xml',

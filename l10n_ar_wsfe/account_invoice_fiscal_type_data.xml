@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+
+	<record id="fiscal_type_normal" model="account.invoice.fiscal.type" forcecreate="0">
+	    <field name="name">Normal</field>
+	    <field name="desc">Factura de mercado interno</field>
+	</record>
+
+	<record id="fiscal_type_fcred" model="account.invoice.fiscal.type" forcecreate="0">
+	    <field name="name">Factura Electrónica de crédito</field>
+	    <field name="desc">Comprobante digital equivalente a la factura de papel</field>
+	</record>
+
+    </data>
+</openerp>

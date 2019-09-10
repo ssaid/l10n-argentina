@@ -42,6 +42,20 @@ class wsfe_tax_codes(osv.osv):
     }
 
 
+class wsfe_optionals(osv.osv):
+    _name = "wsfe.optionals"
+    _description = "WSFE Optionals"
+
+    _columns = {
+        'code': fields.char('Code', required=False, size=4),
+        'name': fields.char('Desc', required=True, size=64),
+        'to_date': fields.date('Effect Until'),
+        'from_date': fields.date('Effective From'),
+        'from_afip': fields.boolean('From AFIP'),
+        'wsfe_config_id': fields.many2one('wsfe.config', 'WSFE Configuration'),
+    }
+
+
 class wsfe_config(osv.osv):
     _name = "wsfe.config"
     _description = "Configuration for WSFE"
@@ -54,6 +68,7 @@ class wsfe_config(osv.osv):
         'point_of_sale_ids': fields.many2many('pos.ar', 'pos_ar_wsfe_rel', 'wsfe_config_id', 'pos_ar_id', 'Points of Sale'),
         'vat_tax_ids' : fields.one2many('wsfe.tax.codes', 'wsfe_config_id' ,'Taxes', domain=[('from_afip', '=', True)]),
         'exempt_operations_tax_ids' : fields.one2many('wsfe.tax.codes', 'wsfe_config_id' ,'Taxes', domain=[('from_afip', '=', False), ('exempt_operations', '=', True)]),
+        'optional_ids': fields.one2many('wsfe.optionals', 'wsfe_config_id', 'Optionals', domain=[('from_afip', '=', True)]),
         'wsaa_ticket_id' : fields.many2one('wsaa.ta', 'Ticket Access'),
         'company_id' : fields.many2one('res.company', 'Company Name' , required=True),
     }
@@ -311,14 +326,14 @@ class wsfe_config(osv.osv):
 
     def read_tax(self, cr, uid , ids , context={}):
         ta_obj = self.pool.get('wsaa.ta')
+        wsfe_tax_obj = self.pool.get('wsfe.tax.codes')
+        wsfe_optionals_obj = self.pool.get('wsfe.optionals')
 
         conf = self.browse(cr, uid, ids)[0]
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfe = wsfe(conf.cuit, token, sign, conf.url)
         res = _wsfe.fe_param_get_tipos_iva()
-
-        wsfe_tax_obj = self.pool.get('wsfe.tax.codes')
 
         # Chequeamos los errores
         msg = self.check_errors(cr, uid, res, raise_exception=False, context=context)
@@ -353,6 +368,47 @@ class wsfe_config(osv.osv):
                 wsfe_tax_obj.write(cr, uid , res_c[0] , {'code': r.Id, 'name': r.Desc, 'to_date': td ,
                     'from_date': fd, 'wsfe_config_id': ids[0], 'from_afip': True } )
 
+        rses = _wsfe.fe_param_get_tipos_opcionales()
+
+        # Chequeamos los errores
+        msg = self.check_errors(
+            cr, uid, res, raise_exception=False, context=context)
+
+        if msg:
+            raise osv.except_osv(_('Error reading optionals'), msg)
+
+        for r in res['response']:
+            res_c = wsfe_optionals_obj.search(cr, uid , [('code','=', r.Id )])
+
+            #~ Si tengo no los codigos de esos Impuestos en la db, los creo
+            if not len(res_c):
+                fd = datetime.strptime(r.FchDesde, '%Y%m%d')
+                try:
+                    td = datetime.strptime(r.FchHasta, '%Y%m%d')
+                except ValueError:
+                    td = False
+
+                wsfe_optionals_obj.create(
+                    cr, uid , {
+                        'code': r.Id, 'name': r.Desc, 'to_date': td,
+                        'from_date': fd, 'wsfe_config_id': ids[0],
+                        'from_afip': True } , context={})
+            #~ Si los codigos estan en la db los modifico
+            else :
+                fd = datetime.strptime(r.FchDesde, '%Y%m%d')
+                #'NULL' ?? viene asi de fe_param_get_tipos_iva():
+                try:
+                    td = datetime.strptime(r.FchHasta, '%Y%m%d')
+                except ValueError:
+                    td = False
+
+                wsfe_optionals_obj.write(
+                    cr, uid , res_c[0] , {
+                        'code': r.Id, 'name': r.Desc, 'to_date': td ,
+                        'from_date': fd, 'wsfe_config_id': ids[0],
+                        'from_afip': True } )
+
+
         return True
 
     def _get_doctype_and_num(self, inv):
@@ -372,6 +428,10 @@ class wsfe_config(osv.osv):
         obj_precision = self.pool.get('decimal.precision')
         invoice_obj = self.pool.get('account.invoice')
         company_id = self.pool.get('res.users')._get_company(cr, uid)
+
+        obj_data = self.pool.get('ir.model.data')
+        wsfcred_type = obj_data.get_object_reference(
+            cr, uid, 'l10n_ar_wsfe', 'fiscal_type_fcred')[1]
 
         details = []
 
@@ -443,6 +503,8 @@ class wsfe_config(osv.osv):
                 detalle['FchServDesde'] = formatted_date_invoice
                 detalle['FchServHasta'] = formatted_date_invoice
                 detalle['FchVtoPago'] = date_due
+            elif inv.fiscal_type_id == wsfcred_type:
+                detalle['FchVtoPago'] = date_due
 
             # Obtenemos la moneda de la factura
             # Lo hacemos por el wsfex_config, por cualquiera de ellos
@@ -512,6 +574,9 @@ class wsfe_config(osv.osv):
 
             # Detalle del array de IVA
             detalle['Iva'] = iva_array
+            detalle['Opcionales'] = map(lambda o: {
+                'Id': int(o.optional_id.code),
+                'Valor': o.value}, inv.optional_ids)
 
             # Detalle de los importes
             detalle['ImpOpEx'] = importe_operaciones_exentas
@@ -544,51 +609,63 @@ class wsfe_voucher_type(osv.osv):
         'code': fields.char('Code', size=4, required=True, help='Internal Code assigned by AFIP for voucher type'),
 
         'voucher_model': fields.selection([
-            ('invoice','Factura/NC/ND'),
-            ('voucher','Recibo'),],'Voucher Model', select=True, required=True),
+            ('account.invoice','Factura/NC/ND'),
+            ('account.voucher','Recibo'),],'Voucher Model', select=True, required=True),
 
         'document_type' : fields.selection([
-            ('out_invoice','Factura'),
-            ('out_refund','Nota de Credito'),
-            ('out_debit','Nota de Debito'),
+            ('invoice','Factura'),
+            ('refund','Nota de Credito'),
+            ('debit','Nota de Debito'),
             ],'Document Type', select=True, required=True, readonly=False),
 
         'denomination_id': fields.many2one('invoice.denomination', 'Denomination', required=False),
+        'fiscal_type_id': fields.many2one('account.invoice.fiscal.type', 'Fiscal type'),
     }
 
     """Es un comprobante que una empresa envía a su cliente, en la que se le notifica haber cargado o debitado en su cuenta una determinada suma o valor, por el concepto que se indica en la misma nota. Este documento incrementa el valor de la deuda o saldo de la cuenta, ya sea por un error en la facturación, interés por mora en el pago, o cualquier otra circunstancia que signifique el incremento del saldo de una cuenta.
 It is a proof that a company sends to your client, which is notified to be charged or debited the account a certain sum or value, the concept shown in the same note. This document increases the value of the debt or account balance, either by an error in billing, interest for late payment, or any other circumstance that means the increase in the balance of an account."""
 
 
-    def get_voucher_type(self, cr, uid, voucher, context=None):
-
-        # Chequeamos el modelo
-        voucher_model = None
-        model = voucher._table_name
-
-        if model == 'account.invoice':
-            voucher_model = 'invoice'
-
-            denomination_id = voucher.denomination_id.id
-            type = voucher.type
-            if type == 'out_invoice':
-                # TODO: Activar esto para ND
-                if voucher.is_debit_note:
-                    type = 'out_debit'
-
-            res = self.search(cr, uid, [('voucher_model','=',voucher_model), ('document_type','=',type), ('denomination_id','=',denomination_id)], context=context)
-
-            if not len(res):
-                raise osv.except_osv(_("Voucher type error!"), _("There is no voucher type that corresponds to this object"))
-
-            if len(res) > 1:
-                raise osv.except_osv(_("Voucher type error!"), _("There is more than one voucher type that corresponds to this object"))
-
-            return self.read(cr, uid, res[0], ['code'], context=context)['code']
-
-        elif model == 'account.voucher':
-            voucher_model = 'voucher'
-
-        return None
+    # def get_voucher_type(self, cr, uid, voucher, context=None):
+    #
+    #     # Chequeamos el modelo
+    #     voucher_model = None
+    #     model = voucher._table_name
+    #
+    #     if model == 'account.invoice':
+    #         voucher_model = 'invoice'
+    #
+    #         denomination_id = voucher.denomination_id.id
+    #         type = voucher.type
+    #         fiscal_type_id = voucher.fiscal_type_id.id
+	#
+    #         if type == 'out_invoice':
+    #             # TODO: Activar esto para ND
+    #             if voucher.is_debit_note:
+    #                 type = 'out_debit'
+    #
+    #         res = self.search(
+    #             cr, uid, [
+    #                 ('voucher_model','=',voucher_model),
+    #                 ('document_type','=',type),
+    #                 ('denomination_id','=',denomination_id)],
+    #             context=context)
+    #
+    #         if fiscal_type_id:
+    #             res = filter(
+    #                 lambda vt: vt.fiscal_type_id.id == fiscal_type_id, res)
+    #
+    #         if not len(res):
+    #             raise osv.except_osv(_("Voucher type error!"), _("There is no voucher type that corresponds to this object"))
+    #
+    #         # if len(res) > 1:
+    #         #     raise osv.except_osv(_("Voucher type error!"), _("There is more than one voucher type that corresponds to this object"))
+    #
+    #         return self.read(cr, uid, res[0], ['code'], context=context)['code']
+    #
+    #     elif model == 'account.voucher':
+    #         voucher_model = 'voucher'
+    #
+    #     return None
 
 wsfe_voucher_type()

@@ -40,19 +40,9 @@ class account_invoice(osv.osv):
             cuit = inv.company_id.partner_id.vat
             pos = '0002'
             
-            eivoucher_obj = self.pool.get('wsfe.voucher_type')
-            aux_res = eivoucher_obj.search(cr, uid, [('document_type', '=', inv.type), ('denomination_id', '=', inv.denomination_id.id)])
-            
-            if aux_res:
-                aux_res = aux_res[0]
-            else:
+            inv_code = inv.voucher_type_id.code
+            if not inv_code:
                 return res
-                
-            if inv.pos_ar_id:
-                pos = inv.pos_ar_id.name
-
-            ei_voucher_type = eivoucher_obj.browse(cr, uid, aux_res)
-            inv_code = ei_voucher_type.code
 
             if inv.state == 'open' and inv.cae != 'NA' and inv.cae_due_date:
                 cae = inv.cae
@@ -62,7 +52,7 @@ class account_invoice(osv.osv):
                 cae = '0'*14
 
             #code = cuit+'%02d'%int(inv_code)+pos+cae+cae_due_date.strftime('%Y%m%d')+'4'
-            code = '%s%02d%04d%s%s4' % (cuit or 11*'0', int(inv_code), int(pos), cae, cae_due_date.strftime('%Y%m%d'))
+            code = '%s%03d%04d%s%s' % (cuit or 11*'0', int(inv_code), int(pos), cae, cae_due_date.strftime('%Y%m%d'))
             
             res[inv.id] = code
         return res

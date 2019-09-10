@@ -1,10 +1,8 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (c) 2011-2014 E-MIPS (http://www.e-mips.com.ar)
-#    Copyright (c) 2014 Aconcagua Team (http://www.proyectoaconcagua.com.ar)
-#    All Rights Reserved. See AUTHORS for details.
+#    Copyright (c) 2019 E-MIPS (http://www.e-mips.com.ar) All Rights Reserved.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +19,13 @@
 #
 ##############################################################################
 
-import res_config
-import account_voucher
-import account
-import payment_methods
-import invoice
+from openerp.osv import osv, fields
+
+class AccountInvoiceFiscalType(osv.osv):
+    _name = "account.invoice.fiscal.type"
+    _description = "Invoice Fiscal Type"
+
+    _columns = {
+        'name': fields.char("Name"),
+        'desc': fields.char("Description"),
+    }
