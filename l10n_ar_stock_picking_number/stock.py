@@ -21,35 +21,34 @@
 
 from openerp.osv import osv, fields
 
+
 class stock_picking(osv.osv):
     _name = "stock.picking"
     _inherit = "stock.picking"
 
     _columns = {
-        'renum_pick_id' : fields.many2one('stock.picking.out', 'Renumerated', help="Reference to the new picking created for renumerate this one. You cannot delete pickings if it is done, so it is cancelled and a new one is created, corrected and renumerated"),
+        'renum_pick_id': fields.many2one('stock.picking.out', 'Renumerated', help="Reference to the new picking created for renumerate this one. You cannot delete pickings if it is done, so it is cancelled and a new one is created, corrected and renumerated"),
     }
 
-    def do_partial(self, cr, uid, ids, partial_datas, context=None):
+    def action_done(self, cr, uid, ids, context=None):
         seq_obj = self.pool.get('ir.sequence')
-
-        res = super(stock_picking, self).do_partial(cr, uid, ids, partial_datas, context)
-        for pick_id in res:
-            delivered_pick_id = res[pick_id]['delivered_picking']
-            pick = self.browse(cr, uid, delivered_pick_id, context=context)
-
+        res = super(stock_picking, self).action_done(cr, uid, ids,
+                                                     context=context)
+        pickings = self.browse(cr, uid, ids, context=context)
+        for pick in pickings:
             if pick.type == 'out':
-                new_pick_name = seq_obj.next_by_code(cr, uid, 'stock.picking.out.ar')
-                self.write(cr, uid, delivered_pick_id, {'name': new_pick_name}, context=context)
+                seq = 'stock.picking.out.ar'
+                new_pick_name = seq_obj.next_by_code(cr, uid, seq)
+                vals = {'name': new_pick_name}
+                self.write(cr, uid, pick.id, vals, context=context)
+
         return res
- 
-stock_picking()
+
 
 class stock_picking_out(osv.osv):
     _name = "stock.picking.out"
     _inherit = "stock.picking.out"
 
     _columns = {
-        'renum_pick_id' : fields.many2one('stock.picking.out', 'Renumerated', help="Reference to the new picking created for renumerate this one. You cannot delete pickings if it is done, so it is cancelled and a new one is created, corrected and renumerated"),
+        'renum_pick_id': fields.many2one('stock.picking.out', 'Renumerated', help="Reference to the new picking created for renumerate this one. You cannot delete pickings if it is done, so it is cancelled and a new one is created, corrected and renumerated"),
     }
-
-stock_picking_out()
