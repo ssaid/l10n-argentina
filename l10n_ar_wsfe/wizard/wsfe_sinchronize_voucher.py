@@ -47,8 +47,8 @@ class wsfe_sinchronize_voucher(osv.osv_memory):
         'amount_tax': fields.float(digits_compute=dp.get_precision('Account'), string="Tax", readonly=True),
         'amount_exempt': fields.float(digits_compute=dp.get_precision('Account'), string="Amount Exempt", readonly=True),
         #'currency': fields.many2one('res.currency', string="Currency", readonly=True),
-        'cae': fields.char('CAE', size=32, required=False, readonly=True),
-        'cae_due_date': fields.date('CAE Due Date', readonly=True),
+        'cae': fields.char('CAE', size=32, required=False),
+        'cae_due_date': fields.date('CAE Due Date'),
         'date_process': fields.datetime('Date Processed', readonly=True),
 
         'infook': fields.boolean('Info OK'),
