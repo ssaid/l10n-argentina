@@ -553,7 +553,7 @@ class wsfex_config(osv.osv):
             comp = result['response']
 
             # Chequeamos que se corresponda con la factura que enviamos a validar
-            doc_num = comp['Cuit'] == int(inv.partner_id.vat)
+            #doc_num = comp['Cuit'] == int(inv.partner_id.vat)
             cbte = True
             if inv.internal_number:
                 cbte = comp['Cbte_nro'] == int(inv.internal_number.split('-')[1])
@@ -724,9 +724,12 @@ class wsfex_config(osv.osv):
         invoice_obj = self.pool.get('account.invoice')
         currency_code_obj = self.pool.get('wsfex.currency.codes')
         uom_code_obj = self.pool.get('wsfex.uom.codes')
+        company_obj = self.pool.get('res.company')
 
         if len(invoice_ids) > 1:
             raise osv.except_osv(_("WSFEX Error!"), _("You cannot inform more than one invoice to AFIP WSFEX"))
+
+        company = company_obj.browse(cr, uid, company_id, context)
 
         first_num = context.get('first_num', False)
         Id = int(datetime.strftime(datetime.now(), '%Y%m%d%H%M%S'))
@@ -786,7 +789,7 @@ class wsfex_config(osv.osv):
 
         Cmps_asoc = []
         for associated_inv in inv.associated_inv_ids:
-            tipo_cbte = voucher_type_obj.get_voucher_type(cr, uid, associated_inv, context=context)
+            tipo_cbte = associated_inv.voucher_type_id.code
             pos, number = associated_inv.internal_number.split('-')
             Cmp_asoc = {
                 'Cbte_tipo': tipo_cbte,

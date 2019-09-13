@@ -368,7 +368,7 @@ class wsfe_config(osv.osv):
                 wsfe_tax_obj.write(cr, uid , res_c[0] , {'code': r.Id, 'name': r.Desc, 'to_date': td ,
                     'from_date': fd, 'wsfe_config_id': ids[0], 'from_afip': True } )
 
-        rses = _wsfe.fe_param_get_tipos_opcionales()
+        res = _wsfe.fe_param_get_tipos_opcionales()
 
         # Chequeamos los errores
         msg = self.check_errors(
@@ -503,7 +503,7 @@ class wsfe_config(osv.osv):
                 detalle['FchServDesde'] = formatted_date_invoice
                 detalle['FchServHasta'] = formatted_date_invoice
                 detalle['FchVtoPago'] = date_due
-            elif inv.fiscal_type_id == wsfcred_type:
+            elif inv.fiscal_type_id.id == wsfcred_type:
                 detalle['FchVtoPago'] = date_due
 
             # Obtenemos la moneda de la factura
@@ -536,7 +536,6 @@ class wsfe_config(osv.osv):
             importe_tributos = 0.0
             importe_total = 0.0
             importe_neto_no_gravado = inv.amount_no_taxed
-
 
             # Procesamos las taxes
             taxes = inv.tax_line
@@ -587,6 +586,36 @@ class wsfe_config(osv.osv):
             detalle['ImpTrib'] = importe_tributos
             detalle['Tributos'] = None
             #print 'Detalle de facturacion: ', detalle
+
+            # Associated Comps
+            CbtesAsoc = []
+            total_associated = 0.0
+            for associated_inv in inv.associated_inv_ids:
+                tipo_cbte = associated_inv.voucher_type_id.code
+                pos, number = associated_inv.internal_number.split('-')
+                cbte_fch = datetime.strptime(
+                    associated_inv.date_invoice, '%Y-%m-%d').strftime('%Y%m%d')
+                CbteAsoc = {
+                    'Tipo': tipo_cbte,
+                    'PtoVta': int(pos),
+                    'Nro': int(number),
+                    'Cuit': inv.company_id.partner_id.vat,
+                    'CbteFch': cbte_fch,
+                }
+
+                total_associated += associated_inv.amount_total
+                CbtesAsoc.append(CbteAsoc)
+
+            if CbtesAsoc and inv.fiscal_type_id.id == wsfcred_type:
+                detalle['CbtesAsoc'] = CbtesAsoc
+
+                anulled_inv = 'S' if total_associated == inv.amount_total else 'N'
+
+                # Anulacion
+                detalle['Opcionales'].append({
+                    'Id': 22,
+                    'Valor': anulled_inv,
+                })
 
             # Agregamos un hook para agregar tributos o IVA que pueda ser
             # llamado de otros modulos. O mismo para modificar el detalle.

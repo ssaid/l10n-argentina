@@ -282,7 +282,7 @@
 							<field name="code" select="1"/>
 							<field name="voucher_model" select="1"/>
 							<separator colspan="4"/>
-							<group colspan="4" name="voucher_invoice" attrs="{'invisible': [('voucher_model','!=','invoice')]}">
+							<group colspan="4" name="voucher_invoice" attrs="{'invisible': [('voucher_model','!=','account.invoice')]}">
 								<field name="document_type"  />
 							</group>
 							<field name="denomination_id" />
