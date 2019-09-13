@@ -220,7 +220,7 @@ class wsfex_config(osv.osv):
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
-        res = _wsfex.FEXGetPARAM("MON") 
+        res = _wsfex.FEXGetPARAM("MON")
 
         wsfex_cur_obj = self.pool.get('wsfex.currency.codes')
 
@@ -251,7 +251,7 @@ class wsfex_config(osv.osv):
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
-        res = _wsfex.FEXGetPARAM("UMed") 
+        res = _wsfex.FEXGetPARAM("UMed")
 
         wsfex_uom_obj = self.pool.get('wsfex.uom.codes')
 
@@ -286,7 +286,7 @@ class wsfex_config(osv.osv):
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
-        res = _wsfex.FEXGetPARAM("Idiomas") 
+        res = _wsfex.FEXGetPARAM("Idiomas")
 
         wsfex_param_obj = self.pool.get('wsfex.lang.codes')
 
@@ -321,7 +321,7 @@ class wsfex_config(osv.osv):
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
-        res = _wsfex.FEXGetPARAM("Tipo_Expo") 
+        res = _wsfex.FEXGetPARAM("Tipo_Expo")
 
         wsfex_param_obj = self.pool.get('wsfex.export_type.codes')
 
@@ -356,7 +356,7 @@ class wsfex_config(osv.osv):
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
-        res = _wsfex.FEXGetPARAM("DST_pais") 
+        res = _wsfex.FEXGetPARAM("DST_pais")
 
         wsfex_param_obj = self.pool.get('wsfex.dst_country.codes')
 
@@ -391,7 +391,7 @@ class wsfex_config(osv.osv):
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
-        res = _wsfex.FEXGetPARAM("Incoterms") 
+        res = _wsfex.FEXGetPARAM("Incoterms")
 
         wsfex_param_obj = self.pool.get('wsfex.incoterms.codes')
 
@@ -426,7 +426,7 @@ class wsfex_config(osv.osv):
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
-        res = _wsfex.FEXGetPARAM("DST_CUIT") 
+        res = _wsfex.FEXGetPARAM("DST_CUIT")
 
         wsfex_param_obj = self.pool.get('wsfex.dst_cuit.codes')
 
@@ -461,7 +461,7 @@ class wsfex_config(osv.osv):
         token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
 
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
-        res = _wsfex.FEXGetPARAM("Tipo_Cbte") 
+        res = _wsfex.FEXGetPARAM("Tipo_Cbte")
 
         wsfex_param_obj = self.pool.get('wsfex.voucher_type.codes')
 
@@ -522,7 +522,7 @@ class wsfex_config(osv.osv):
         _wsfex = wsfex(conf.cuit, token, sign, conf.url)
 
         # Agregamos la info que falta
-        details['Tipo_cbte'] = voucher_type
+        details['Cbte_Tipo'] = voucher_type
         details['Punto_vta'] = pos
         res = _wsfex.FEXAuthorize(details)
 
@@ -756,12 +756,13 @@ class wsfex_config(osv.osv):
         formatted_date_invoice = date_invoice.strftime('%Y%m%d')
         #date_due = inv.date_due and datetime.strptime(inv.date_due, '%Y-%m-%d').strftime('%Y%m%d') or formatted_date_invoice
 
-        cuit_pais = inv.dst_cuit_id and inv.dst_cuit_id.code or 0
+        cuit_pais = inv.dst_cuit_id and int(inv.dst_cuit_id.code) or inv.partner_id.vat
         inv_currency_id = inv.currency_id.id
         curr_code_ids = currency_code_obj.search(cr, uid, [('currency_id', '=', inv_currency_id)], context=context)
 
         if curr_code_ids:
             curr_code = currency_code_obj.read(cr, uid, curr_code_ids[0], {'code'}, context=context)['code']
+            curr_rate = company.currency_id.id==inv_currency_id and 1.0 or inv.currency_rate
         else:
             raise osv.except_osv(_("WSFEX Error!"), _("Currency %s has not code configured") % inv.currency_id.name)
 
@@ -779,7 +780,7 @@ class wsfex_config(osv.osv):
 
             items.append({
                 'Pro_codigo' : i,#product_code,
-                'Pro_ds' : line.name,
+                'Pro_ds' : line.name.encode('ascii', errors='ignore'),
                 'Pro_qty' : line.quantity,
                 'Pro_umed' : uom_code,
                 'Pro_precio_uni' : line.price_unit,
@@ -800,7 +801,7 @@ class wsfex_config(osv.osv):
             Cmps_asoc.append(Cmp_asoc)
 
         # TODO: Agregar permisos
-        tipo_cbte = voucher_type_obj.get_voucher_type(cr, uid, inv, context=context)
+        tipo_cbte = inv.voucher_type_id.code  # voucher_type_obj.get_voucher_type(cr, uid, inv, context=context)
         if tipo_cbte in ('20', '21'):
             shipping_perm = ''
         else:
@@ -816,12 +817,12 @@ class wsfex_config(osv.osv):
             'Tipo_expo' : inv.export_type_id.code, #Exportacion de bienes
             'Permiso_existente' : shipping_perm,
             'Dst_cmp' : inv.dst_country_id.code,
-            'Cliente' : inv.partner_id.name,
-            'Domicilio_cliente' : inv.partner_id.contact_address,
-            'Cuit_pais_cliente' : int(cuit_pais),
+            'Cliente' : inv.partner_id.name.encode('ascii', errors='ignore'),
+            'Domicilio_cliente' : inv.partner_id.contact_address.encode('ascii', errors='ignore'),
+            'Cuit_pais_cliente' : cuit_pais,
             'Id_impositivo' : inv.partner_id.vat,
             'Moneda_Id' : curr_code,
-            'Moneda_ctz' : 1.000000, # TODO: Obtener cotizacion usando el metodo de AFIP
+            'Moneda_ctz' : curr_rate,
             'Imp_total' : inv.amount_total,
             'Idioma_cbte' : 1,
             'Items' : items
