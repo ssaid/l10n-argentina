@@ -643,7 +643,7 @@ class wsfex_config(models.Model):
             # TODO: Agregar permisos
             shipping_perm = 'S' and inv.shipping_perm_ids or 'N'
             tipo_cbte = voucher_type_obj.get_voucher_type(inv)
-            if inv.export_type_id.code in [2,4] and tipo_cbte == '19':
+            if (tipo_cbte in ['20', '21']) or (inv.export_type_id.code in [2,4] and tipo_cbte == '19'):
                 shipping_perm = ''
                 due_date = inv.date_due.replace('-', '')
 
