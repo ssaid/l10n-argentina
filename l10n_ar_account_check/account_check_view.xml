@@ -70,6 +70,7 @@
                     <field name="amount" sum="Total Amount" />
                     <field name="type" invisible="1"/>
                     <field name="state"/>
+                    <field name="is_electronic"/>
                 </tree>
             </field>
         </record>
@@ -81,35 +82,38 @@
             <field name="arch" type="xml">
                 <form string="Issued Checks" version="7.0">
                     <header>
-                        <field name="state" widget="statusbar" statusbar_visible="draft,issued" statusbar_colors='{"cancel":"red"}'/>
+                        <button name="to_wallet" type='object' string="To Wallet" attrs="{'invisible': ['|', ('is_electronic', '!=', True), ('state', 'in', 'wallet')]}"/>
+                        <button name="to_draft" type='object' string="To Draft" attrs="{'invisible': ['|', ('is_electronic', '!=', True), ('state', 'in', 'draft')]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible=" " statusbar_colors='{"cancel":"red"}'/>
                     </header>
                     <sheet>
                         <div class="oe_title">
                             <h1>
                                 <label string="Issued Check"/>
-                                <field name="number" class="oe_inline"/>
+                                <field name="number" class="oe_inline" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
                             </h1>
                         </div>
                         <group>
                             <group>
-                                <field name="type"/>
-                                <field name="amount"/>
-                                <field name="receiving_partner_id"/>
-                                <field name="bank_id"/>
+                                <field name="type" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="amount" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="receiving_partner_id" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="bank_id" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
                             </group>
                             <group>
-                                <field name="issue_date"/>
-                                <field name="payment_date" attrs="{'invisible': [('type', '=', 'common')], 'required': [('type','=','postdated')]}"/>
-                                <field name="account_bank_id" domain="[('bank', '=', bank_id)]" required="1"/>
+                                <field name="issue_date" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="payment_date" attrs="{'invisible': [('type', '=', 'common')], 'required': [('type','=','postdated')], 'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="account_bank_id" domain="[('bank', '=', bank_id)]" required="1" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="is_electronic"/>
                             </group>
                         </group>
                         <group string="Additional Information">
                             <group>
-                                <field name="clearing"/>
-                                <field name="signatory"/>
+                                <field name="clearing" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="signatory" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
                             </group>
                             <group>
-                                <field name="origin"/>
+                                <field name="origin" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
                             </group>
                          </group>
                     </sheet>
@@ -181,6 +185,16 @@
             <field name="search_view_id" ref="view_account_issued_check_filter"/>
         </record>
 
+        <record model="ir.actions.act_window" id="action_issued_electronic_check">
+            <field name="name">Electronic Issued Checks</field>
+            <field name="res_model">account.issued.check</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('is_electronic', '=', 'True')]</field>
+            <field name="context">{'default_is_electronic': True}</field>
+            <field name="search_view_id" ref="view_account_issued_check_filter"/>
+        </record>
+
         <record model="ir.actions.act_window" id="action_issued_check_calendar_payment_date">
             <field name="name">Issued Checks by Payment Date</field>
             <field name="res_model">account.issued.check</field>
@@ -216,6 +230,13 @@
             parent="menu_treasury_issued_check_menu"
         />
 
+        <menuitem
+            action="action_issued_electronic_check"
+            id="menu_electronic_issued_check"
+            name="Electronic Checks"
+            parent="menu_treasury_issued_check_menu"
+        />
+
     <!-- Third Checks -->
 
         <record model="ir.ui.view" id="view_account_third_check_tree">
@@ -237,6 +258,7 @@
                     <field name="deposit_slip"/>
                     <field name="type"/>
                     <field name="state"/>
+                    <field name="is_electronic" readonly="True"/>
                 </tree>
             </field>
         </record>
@@ -265,6 +287,7 @@
                                 <field name="amount"/>
                                 <field name="source_partner_id"/>
                                 <field name="destiny_partner_id" attrs="{'invisible': [('state', 'not in', ('delivered', 'rejected'))]}"/>
+                                <field name="is_electronic" readonly="True"/>
                             </group>
                             <group>
                                 <field name="receipt_date"/>
@@ -433,6 +456,15 @@
             <field name="domain">[('endorsement_date','!=',False)]</field>
         </record>
 
+        <record model="ir.actions.act_window" id="action_third_electronic_check">
+            <field name="name">Electronic Third Checks</field>
+            <field name="res_model">account.third.check</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('is_electronic', '=', 'True')]</field>
+            <field name="view_id" eval="view_account_third_check_tree"/>
+            <field name="search_view_id" ref="view_third_checks_search"/>
+        </record>
 
 
         <menuitem id="menu_treasury_third_check_menu" name="Third Checks" parent="menu_treasury_root" sequence="20"/>
@@ -457,6 +489,13 @@
             action="action_third_check_calendar_endorsement_date"
             id="menu_treasury_third_check_calendar_endorsement"
             name="Calendar By Endorsement Date"
+            parent="menu_treasury_third_check_menu"
+        />
+
+        <menuitem
+            action="action_third_electronic_check"
+            id="menu_electronic_third_check"
+            name="Electronic Checks"
             parent="menu_treasury_third_check_menu"
         />
 
