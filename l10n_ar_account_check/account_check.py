@@ -87,12 +87,12 @@ class account_issued_check(osv.osv):
         'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.voucher',context=c),
     }
 
-    def to_wallet(self, cr, uid, ids, *args):
-        self.write(cr, uid, ids, {'state': 'wallet'})
+    def to_wallet(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'wallet'}, context)
         return True
 
-    def to_draft(self, cr, uid, ids, *args):
-        self.write(cr, uid, ids, {'state': 'draft'})
+    def to_draft(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'draft'}, context)
         return True
 
     def create_voucher_move_line(self, cr, uid, check, voucher, context={}):

@@ -82,8 +82,8 @@
             <field name="arch" type="xml">
                 <form string="Issued Checks" version="7.0">
                     <header>
-                        <button name="to_wallet" states="draft" type='object' string="To Wallet"/>
-                        <button name="to_draft" states="wallet" type='object' string="To Draft"/>
+                        <button name="to_wallet" type='object' string="To Wallet" attrs="{'invisible': ['|', ('is_electronic', '!=', True), ('state', 'in', 'wallet')]}"/>
+                        <button name="to_draft" type='object' string="To Draft" attrs="{'invisible': ['|', ('is_electronic', '!=', True), ('state', 'in', 'draft')]}"/>
                         <field name="state" widget="statusbar" statusbar_visible=" " statusbar_colors='{"cancel":"red"}'/>
                     </header>
                     <sheet>
