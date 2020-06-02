@@ -811,3 +811,24 @@ msgstr "Gastos"
 msgid "Total"
 msgstr "Total"
 
+#. module: l10n_ar_account_check
+#: model:ir.ui.menu,name:l10n_ar_account_check.menu_electronic_issued_check
+#: model:ir.ui.menu,name:l10n_ar_account_check.menu_electronic_third_check
+msgid "Electronic Checks"
+msgstr "Cheques Electrónicos"
+
+#. module: l10n_ar_account_check
+#: field:account.issued.check,is_electronic:0
+#: field:account.third.check,is_electronic:0
+msgid "Electronic Check"
+msgstr "Cheque electrónico"
+
+#. module: l10n_ar_account_check
+#: model:ir.actions.act_window,name:l10n_ar_account_check.action_issued_electronic_check
+msgid "Electronic Issued Checks"
+msgstr "Cheques emitidos electrónicos"
+
+#. module: l10n_ar_account_check
+#: model:ir.actions.act_window,name:l10n_ar_account_check.action_third_electronic_check
+msgid "Electronic Third Checks"
+msgstr "Cheques de terceros electrónicos"
