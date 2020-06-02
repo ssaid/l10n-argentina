@@ -88,11 +88,11 @@ class account_issued_check(osv.osv):
     }
 
     def to_wallet(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state': 'wallet'}, context)
+        self.write(cr, uid, ids, {'state': 'wallet'}, context=None)
         return True
 
     def to_draft(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state': 'draft'}, context)
+        self.write(cr, uid, ids, {'state': 'draft'}, context=None)
         return True
 
     def create_voucher_move_line(self, cr, uid, check, voucher, context={}):
