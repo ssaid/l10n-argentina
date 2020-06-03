@@ -459,12 +459,6 @@ msgid "Add Checks"
 msgstr "Añadir cheques"
 
 #. module: l10n_ar_account_check
-#: selection:account.add.third.check,state:0
-#: selection:account.third.check,state:0
-msgid "Draft"
-msgstr "Borrador"
-
-#. module: l10n_ar_account_check
 #: sql_constraint:account.check.config:0
 msgid "The configuration must be unique per company!"
 msgstr "La configuración debe ser única por compañía!"
@@ -842,3 +836,14 @@ msgstr "Pasar a cartera"
 #: view:account.issued.check:0
 msgid "To Draft"
 msgstr "Pasar a borrador"
+
+#. module: l10n_ar_account_check
+#: selection:account.issued.check,state:0
+msgid "Wallet"
+msgstr "En Cartera"
+
+#. module: l10n_ar_account_check
+#: selection:account.add.third.check,state:0
+#: selection:account.issued.check,state:0 selection:account.third.check,state:0
+msgid "Draft"
+msgstr "Borrador"
