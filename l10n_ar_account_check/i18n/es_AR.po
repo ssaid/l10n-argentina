@@ -832,3 +832,13 @@ msgstr "Cheques emitidos electrónicos"
 #: model:ir.actions.act_window,name:l10n_ar_account_check.action_third_electronic_check
 msgid "Electronic Third Checks"
 msgstr "Cheques de terceros electrónicos"
+
+#. module: l10n_ar_account_check
+#: view:account.issued.check:0
+msgid "To Wallet"
+msgstr "Pasar a cartera"
+
+#. module: l10n_ar_account_check
+#: view:account.issued.check:0
+msgid "To Draft"
+msgstr "Pasar a borrador"
