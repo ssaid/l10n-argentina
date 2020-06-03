@@ -11,7 +11,7 @@
             <data>
                 <field name="type" position="before">
                     <field name="check_id" invisible="1"/>
-                    <field name="checkbook_id" readonly="1"/>
+                    <field name="checkbook_id" readonly="1" invisible="1"/>
                 </field>
             </data>
         </field>
