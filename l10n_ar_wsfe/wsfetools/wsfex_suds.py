@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger('suds.client')
 logger.setLevel(logging.DEBUG)
- 
+
 WSFEXURLv1_HOMO = "https://wswhomo.afip.gov.ar/wsfex/service.asmx?wsdl"
 WSAAURL = "https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl" # homologacion (pruebas)
 
@@ -38,7 +38,7 @@ class WSFEX:
 
         # Creamos el cliente
         self._create_client(token, sign)
- 
+
     def _create_client(self, token, sign):
         try:
             self.client = Client(self.wsfexurl)
@@ -162,23 +162,36 @@ class WSFEX:
         return res
 
     # Metodo verificador de existencia de Permiso/Pais
-    #def FEXCheck_Permiso(self):
+    def FEXCheck_Permiso(self, code, dst_country):
+        result = self.client.service.FEXCheck_Permiso(self.argauth, code, dst_country)
+        # TODO: Chequear permisos de embarque
+
 
     # Metodo chequeo servidor
     #def FEXDummy(self):
     def FEXAuthorize(self, Cmp):
         if not self.connected:
             self._create_client()
-        
+
 
         fexrequest = self.client.factory.create('ns0:ClsFEXRequest')
         for k, v in Cmp.iteritems():
-            if k == 'Items':
+            if k in ['Items', 'Permisos']:
                 continue
             if k in fexrequest:
                 fexrequest[k] = v
             else:
                 logger.warning("Campo %s no se encuentra en tipo ClsFEXRequest" % k)
+
+        for perm in Cmp['Permisos']:
+            permiso = self.client.factory.create('ns0:Permiso')
+            for k, v in perm.iteritems():
+                if k in permiso:
+                    permiso[k] = v
+                else:
+                    logger.warning("Campo %s no se encuentra en tipo Permiso" % k)
+
+            fexrequest.Permisos.Permiso.append(permiso)
 
         for item in Cmp['Items']:
             feitem = self.client.factory.create('ns0:Item')

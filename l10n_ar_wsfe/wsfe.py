@@ -503,7 +503,7 @@ class wsfe_config(osv.osv):
                 detalle['FchServDesde'] = formatted_date_invoice
                 detalle['FchServHasta'] = formatted_date_invoice
                 detalle['FchVtoPago'] = date_due
-            elif inv.fiscal_type_id.id == wsfcred_type:
+            elif inv.fiscal_type_id.id == wsfcred_type and inv.type == 'out_invoice':
                 detalle['FchVtoPago'] = date_due
 
             # Obtenemos la moneda de la factura
@@ -606,16 +606,8 @@ class wsfe_config(osv.osv):
                 total_associated += associated_inv.amount_total
                 CbtesAsoc.append(CbteAsoc)
 
-            if CbtesAsoc and inv.fiscal_type_id.id == wsfcred_type:
+            if CbtesAsoc:
                 detalle['CbtesAsoc'] = CbtesAsoc
-
-                anulled_inv = 'S' if total_associated == inv.amount_total else 'N'
-
-                # Anulacion
-                detalle['Opcionales'].append({
-                    'Id': 22,
-                    'Valor': anulled_inv,
-                })
 
             # Agregamos un hook para agregar tributos o IVA que pueda ser
             # llamado de otros modulos. O mismo para modificar el detalle.
@@ -623,7 +615,7 @@ class wsfe_config(osv.osv):
 
             details.append(detalle)
 
-        #print 'Detalles: ', details
+        print 'Detalles: ', details
         return details
 
 wsfe_config()

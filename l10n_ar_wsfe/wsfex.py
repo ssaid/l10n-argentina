@@ -626,7 +626,18 @@ class wsfex_config(osv.osv):
         self.check_event(cr, uid, res, context=context)
         last = res['response']
         return last
-#
+
+    def get_wsfex_check_perm(self, cr, uid , ids , ship_perm, context={}):
+        ta_obj = self.pool.get('wsaa.ta')
+
+        conf = self.browse(cr, uid, ids)[0]
+        token, sign = ta_obj.get_token_sign(cr, uid, [conf.wsaa_ticket_id.id], context=context)
+
+        _wsfex = wsfex(conf.cuit, token, sign, conf.url)
+        res = _wsfex.FEXCheck_Permiso(ship_perm.name, ship_perm.dst_country_id.code)
+
+
+
 #    def get_voucher_info(self, cr, uid, ids, pos, voucher_type, number, context={}):
 #        ta_obj = self.pool.get('wsaa.ta')
 #
@@ -788,6 +799,16 @@ class wsfex_config(osv.osv):
                 'Pro_bonificacion' : 0,
             })
 
+        shipping_permissions = []
+        for ship_perm in inv.shipping_perm_ids:
+
+            shipping_permissions.append({
+                'Id_permiso' : ship_perm.name,
+                'Dst_merc' : ship_perm.dst_country_id.code,
+            })
+
+            self.get_wsfex_check_perm(cr, uid, [conf.id], ship_perm)
+
         Cmps_asoc = []
         for associated_inv in inv.associated_inv_ids:
             tipo_cbte = associated_inv.voucher_type_id.code
@@ -805,7 +826,7 @@ class wsfex_config(osv.osv):
         if tipo_cbte in ('20', '21'):
             shipping_perm = ''
         else:
-            shipping_perm = 'S' and inv.shipping_perm_ids or 'N'
+            shipping_perm = inv.shipping_perm_ids and 'S' or 'N'
 
         Cmp = {
             'invoice_id' : inv.id,
@@ -816,6 +837,7 @@ class wsfex_config(osv.osv):
             'Cbte_nro' : cbte_nro,
             'Tipo_expo' : inv.export_type_id.code, #Exportacion de bienes
             'Permiso_existente' : shipping_perm,
+            'Permisos': shipping_permissions,
             'Dst_cmp' : inv.dst_country_id.code,
             'Cliente' : inv.partner_id.name.encode('ascii', errors='ignore'),
             'Domicilio_cliente' : inv.partner_id.contact_address.encode('ascii', errors='ignore'),
