@@ -99,6 +99,7 @@
                                         <field name="type"/>
                                         <field name="amount"/>
                                         <field name="bank_id"/>
+                                        <field name="is_electronic"/>
                                     </group>
                                     <group>
                                         <field name="receipt_date"/>

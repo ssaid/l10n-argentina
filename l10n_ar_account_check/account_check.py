@@ -76,7 +76,8 @@ class account_issued_check(osv.osv):
         'type': fields.selection([('common', 'Common'),('postdated', 'Post-dated')], 'Check Type',
             help="If common, checks only have issued_date. If post-dated they also have payment date"),
         'company_id': fields.many2one('res.company', 'Company', required=True, readonly=True),
-        'state': fields.selection([('draft', 'Draft'), ('issued', 'Issued'), ('cancel', 'Cancelled')], 'State')
+        'state': fields.selection([('draft', 'Draft'), ('wallet', 'Wallet'), ('issued', 'Issued'), ('cancel', 'Cancelled')], 'State'),
+        'is_electronic': fields.boolean('Electronic Check', readonly=True)
     }
 
     _defaults = {
@@ -85,6 +86,14 @@ class account_issued_check(osv.osv):
         'state': 'draft',
         'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.voucher',context=c),
     }
+
+    def to_wallet(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'wallet'}, context=context)
+        return True
+
+    def to_draft(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'draft'}, context=context)
+        return True
 
     def create_voucher_move_line(self, cr, uid, check, voucher, context={}):
         voucher_obj = self.pool.get('account.voucher')
@@ -139,7 +148,7 @@ class account_issued_check(osv.osv):
                 raise osv.except_osv(_('Check Error'), _('You cannot delete an issued check that is not in Draft state [See %s].') % (check['voucher_id'][1]))
 
         return super(account_issued_check, self).unlink(cr, uid, ids, context)
-        
+
 account_issued_check()
 
 
@@ -192,6 +201,7 @@ class account_third_check(osv.osv):
         'signatory_vat': fields.char('Signatory VAT', size=64),
         'signatory_account': fields.char('Signatory account', size=64),
         'deposit_slip': fields.char('Deposit Slip', size=64),
+        'is_electronic': fields.boolean('Electronic Check')
     }
 
     _defaults = {
@@ -289,7 +299,7 @@ class account_third_check(osv.osv):
                 raise osv.except_osv(_('Check Error'), _('You cannot delete a third check that is not in Draft state [See %s].') % (check['source_voucher_id'][1]))
 
         return super(account_third_check, self).unlink(cr, uid, ids, context)
- 
+
     def cancel_check(self, cr, uid, ids, context=None):
 
         # Todos los cheques tienen que estar en draft o wallet
