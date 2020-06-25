@@ -98,13 +98,13 @@
                                 <field name="type" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
                                 <field name="amount" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
                                 <field name="receiving_partner_id" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
-                                <field name="bank_id" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="is_electronic"/>
                             </group>
                             <group>
                                 <field name="issue_date" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
                                 <field name="payment_date" attrs="{'invisible': [('type', '=', 'common')], 'required': [('type','=','postdated')], 'readonly': [('state', 'in', 'wallet')]}"/>
+                                <field name="bank_id" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
                                 <field name="account_bank_id" domain="[('bank', '=', bank_id)]" required="1" attrs="{'readonly': [('state', 'in', 'wallet')]}"/>
-                                <field name="is_electronic"/>
                             </group>
                         </group>
                         <group string="Additional Information">

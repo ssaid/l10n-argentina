@@ -235,6 +235,8 @@ msgstr "Cheque propio"
 #: field:account.add.third.check,state:0
 #: view:account.third.check:0
 #: field:account.third.check,state:0
+#: field:account.add.third.check,state:0 field:account.issued.check,state:0
+#: view:account.third.check:0 field:account.third.check,state:0
 msgid "State"
 msgstr "Estado"
 
