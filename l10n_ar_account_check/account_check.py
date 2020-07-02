@@ -77,7 +77,7 @@ class account_issued_check(osv.osv):
             help="If common, checks only have issued_date. If post-dated they also have payment date"),
         'company_id': fields.many2one('res.company', 'Company', required=True, readonly=True),
         'state': fields.selection([('draft', 'Draft'), ('wallet', 'Wallet'), ('issued', 'Issued'), ('cancel', 'Cancelled')], 'State'),
-        'is_electronic': fields.boolean('Electronic Check', readonly=True)
+        'is_electronic': fields.related('checkbook_id', 'is_electronic', string='Electronic Check', type='boolean', readonly=True, store=True)
     }
 
     _defaults = {
@@ -86,14 +86,6 @@ class account_issued_check(osv.osv):
         'state': 'draft',
         'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.voucher',context=c),
     }
-
-    def to_wallet(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state': 'wallet'}, context=context)
-        return True
-
-    def to_draft(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state': 'draft'}, context=context)
-        return True
 
     def create_voucher_move_line(self, cr, uid, check, voucher, context={}):
         voucher_obj = self.pool.get('account.voucher')
