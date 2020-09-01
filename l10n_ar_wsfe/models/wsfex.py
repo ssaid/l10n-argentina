@@ -497,7 +497,7 @@ class WsfexConfig(models.Model):
             'request_id': detail['Id'],
             'voucher_number': '%04d-%08d' % (pos, detail['Cbte_nro']),
             'voucher_type_id': voucher_type_ids[0],
-            'date': detail['Fecha_cbte'],
+            'date': detail['Fecha_cbte'] or detail['Fch_cbte'],
             'detail': str(detail),
             'error': 'error' in res and res['error'] or '',
             'event': 'event' in res and res['event'] or '',
