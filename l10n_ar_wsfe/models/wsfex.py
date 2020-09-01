@@ -29,9 +29,7 @@ from openerp import _, api, exceptions, fields, models
 from openerp.osv import osv
 
 from ..wsfetools.wsfex_suds import WSFEX
-import logging
-
-_logger = logging.getLogger(__name__)
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
 class wsfex_currency_codes(models.Model):
@@ -494,14 +492,12 @@ class WsfexConfig(models.Model):
             invoice_id = False
         else:
             invoice_id = detail['invoice_id']
-        _logger.info('Detail %s' % detail)
-        _logger.info('res %s' % res)
         vals = {
             'invoice_id': invoice_id,
             'request_id': detail['Id'],
             'voucher_number': '%04d-%08d' % (pos, detail['Cbte_nro']),
             'voucher_type_id': voucher_type_ids[0],
-            'date': detail['Fecha_cbte'],
+            'date': detail['Fecha_cbte'] or datetime.datetime.today().strftime(DEFAULT_SERVER_DATE_FORMAT),
             'detail': str(detail),
             'error': 'error' in res and res['error'] or '',
             'event': 'event' in res and res['event'] or '',
