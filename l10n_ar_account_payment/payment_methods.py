@@ -37,7 +37,7 @@ class payment_mode_receipt_line(osv.osv):
         else:
             return currency_obj.search([('rate', '=', 1.0)], limit=1).id
 
-    name = fields.Char('Mode', size=64, required=True, readonly=True, help='Payment reference')
+    name = fields.Char('Mode', size=64, readonly=True, help='Payment reference')
     payment_mode_id = fields.Many2one('account.journal', 'Payment Method', required=False, domain=[('type', 'in', ['cash', 'bank'])])
     amount = fields.Float('Amount', digits=(16, 2), default=0.0, required=False, help='Payment amount in the company currency')
     amount_currency = fields.Float('Amount in Partner Currency', digits=(16, 2), required=False, help='Payment amount in the partner currency')
